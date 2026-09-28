@@ -1,0 +1,177 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Kvazar design tokens
+ *  Calm neutral surfaces, one primary (indigo), one accent (coral) used sparingly.
+ *  Gradient is reserved for the brand mark only.
+ */
+:root {
+  --background: #f6f7f9;
+  --foreground: #141722;
+  --muted: #5b6275;
+  --subtle: #8a90a0;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-sunken: #eef0f4;
+  --border: #e3e6ec;
+  --border-strong: #cfd4dd;
+  --ring-track: #e8eaf0;
+  --elevated: #ffffff;
+  --primary: #5b4bf0;
+  --primary-hover: #4c3cdf;
+  --primary-soft: rgb(91 75 240 / 0.08);
+  --primary-text: #4b3bd8;
+  --flare: #b86e00;
+  --mint: #0f9f6e;
+  --danger: #d6334f;
+  --ember: #e0603f;
+  --shadow: 0 1px 2px rgb(16 24 40 / 0.04), 0 1px 3px rgb(16 24 40 / 0.06);
+  --shadow-lg: 0 12px 32px -8px rgb(16 24 40 / 0.18);
+}
+
+.dark {
+  --background: #0d0f15;
+  --foreground: #e7e9ef;
+  --muted: #9ba2b3;
+  --subtle: #6f7687;
+  --surface: #14171f;
+  --surface-raised: #1a1e28;
+  --surface-sunken: #10131a;
+  --border: #242936;
+  --border-strong: #323848;
+  --ring-track: #262b38;
+  --elevated: #1a1e28;
+  --primary: #7465ff;
+  --primary-hover: #8577ff;
+  --primary-soft: rgb(116 101 255 / 0.12);
+  --primary-text: #a49bff;
+  --flare: #f2b54a;
+  --mint: #34c78f;
+  --danger: #f06277;
+  --ember: #ff8a6a;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 16px 40px -8px rgb(0 0 0 / 0.6);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-card-border: var(--border);
+  --color-elevated: var(--elevated);
+  --color-ring-track: var(--ring-track);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-text: var(--primary-text);
+
+  /* Semantic palette (kept under the original names used across components) */
+  --color-nova-300: var(--primary-text);
+  --color-nova-400: var(--primary-text);
+  --color-nova-500: var(--primary);
+  --color-nova-600: var(--primary-hover);
+  --color-pulsar-500: #8b5cf6;
+  --color-ember-300: var(--ember);
+  --color-ember-400: var(--ember);
+  --color-ember-500: var(--ember);
+  --color-ember-600: var(--ember);
+  --color-flare-400: var(--flare);
+  --color-flare-500: var(--flare);
+  --color-mint-400: var(--mint);
+  --color-mint-500: var(--mint);
+  --color-mint-600: var(--mint);
+  --color-danger-400: var(--danger);
+  --color-danger-500: var(--danger);
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  --shadow-card: var(--shadow);
+  --shadow-pop: var(--shadow-lg);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html {
+    color-scheme: light;
+    font-feature-settings: 'cv11', 'ss01';
+    -webkit-text-size-adjust: 100%;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    min-height: 100dvh;
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  h1, h2, h3, h4 {
+    @apply font-display font-semibold;
+    letter-spacing: -0.015em;
+  }
+  ::selection {
+    background: var(--primary-soft);
+  }
+  /* One consistent, clearly visible keyboard focus style everywhere */
+  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+}
+
+/* Surfaces */
+@utility surface {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+@utility surface-raised {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+}
+@utility bg-brand {
+  background-image: linear-gradient(135deg, #6d5bff 0%, #9b5cff 55%, #ff7a5c 100%);
+}
+@utility skeleton {
+  background: linear-gradient(90deg, var(--ring-track) 25%, var(--surface-sunken) 50%, var(--ring-track) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes dialogIn {
+  from { opacity: 0; transform: translate(-50%, -48%); }
+  to { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
