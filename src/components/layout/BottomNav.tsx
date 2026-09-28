@@ -1,14 +1,16 @@
+import { useT } from '@/i18n'
 import { NavLink } from 'react-router-dom'
 import { NAV } from './nav'
 import { usePendingHomework } from '@/hooks/usePendingHomework'
 import { cn } from '@/lib/utils'
 
 export function BottomNav() {
+  const { t } = useT()
   const { overdue, pending } = usePendingHomework()
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden"
-      aria-label="Asosiy navigatsiya"
+      aria-label={t('nav.main')}
     >
       <div className="mx-auto flex max-w-lg">
         {NAV.filter((n) => n.mobile).map((item) => (
@@ -26,7 +28,7 @@ export function BottomNav() {
                 <span className={cn('absolute -right-1.5 -top-1 size-2 rounded-full ring-2 ring-surface', overdue ? 'bg-danger-500' : 'bg-primary')} />
               )}
             </span>
-            {item.short}
+            {t(item.short)}
           </NavLink>
         ))}
       </div>

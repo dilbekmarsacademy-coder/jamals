@@ -1,3 +1,4 @@
+import { useT } from '@/i18n'
 import { motion } from 'framer-motion'
 import { CalendarClock, Clock, Zap } from 'lucide-react'
 import type { Homework, HomeworkProgress, HomeworkStatus } from '@/types'
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export function HomeworkCard({ hw, progress, status, onOpen }: Props) {
+  const { t, tr } = useT()
   const answered = Object.keys(progress.answers).length
   return (
     <motion.button
@@ -32,13 +34,13 @@ export function HomeworkCard({ hw, progress, status, onOpen }: Props) {
         <SubjectPill subject={hw.subject} />
         <DifficultyBars level={hw.difficulty} />
       </div>
-      <h3 className="mt-2.5 text-[15px] font-medium leading-snug">{hw.title}</h3>
+      <h3 className="mt-2.5 text-[15px] font-medium leading-snug">{tr(hw.title)}</h3>
       <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-muted">
-        <span className={cn('inline-flex items-center gap-1', status === 'overdue' && 'font-medium text-danger-500')} title={`Muddat: ${formatDate(progress.dueDate)}`}>
+        <span className={cn('inline-flex items-center gap-1', status === 'overdue' && 'font-medium text-danger-500')} title={t('hw.dueOn', { date: formatDate(progress.dueDate) })}>
           <CalendarClock className="size-3.5" />
-          {status === 'done' ? `Bajarildi` : relativeDue(progress.dueDate)}
+          {status === 'done' ? t('hw.done') : relativeDue(progress.dueDate)}
         </span>
-        <span className="inline-flex items-center gap-1"><Clock className="size-3.5" /> ~{hw.estimatedMin} daq</span>
+        <span className="inline-flex items-center gap-1"><Clock className="size-3.5" /> {t('unit.min', { n: hw.estimatedMin })}</span>
         <span className="inline-flex items-center gap-1"><Zap className="size-3.5" /> {hw.xpReward} XP</span>
       </div>
       {status === 'in_progress' && (
@@ -50,7 +52,7 @@ export function HomeworkCard({ hw, progress, status, onOpen }: Props) {
         </div>
       )}
       {status === 'done' && progress.score !== undefined && (
-        <div className="mt-3 text-[13px] text-muted">Natija: <span className="font-medium text-foreground">{Math.round(progress.score * 100)}%</span></div>
+        <div className="mt-3 text-[13px] text-muted">{t('hw.result')} <span className="font-medium text-foreground">{Math.round(progress.score * 100)}%</span></div>
       )}
     </motion.button>
   )

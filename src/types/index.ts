@@ -1,3 +1,7 @@
+import type { L10n } from '@/i18n/lang'
+
+export type { L10n }
+
 /** ISO date string without time, e.g. "2026-09-28" */
 export type DateKey = string
 
@@ -18,7 +22,7 @@ export interface UserProfile {
 
 export interface LessonMaterial {
   id: string
-  title: string
+  title: L10n
   type: 'pdf' | 'link' | 'worksheet'
   url: string
   size?: string
@@ -27,10 +31,11 @@ export interface LessonMaterial {
 export interface Lesson {
   id: string
   order: number
-  title: string
+  title: L10n
   subject: Subject
+  /** SAT domain name — kept in English on purpose (official College Board terms) */
   topic: string
-  description: string
+  description: L10n
   youtubeId: string
   /** Approximate duration in minutes (the real value is read from the player) */
   durationMin: number
@@ -46,7 +51,7 @@ export interface Question {
   prompt: string
   choices: string[]
   answerIndex: number
-  explanation: string
+  explanation: L10n
 }
 
 /** Stored status — "overdue" is derived from dueDate, never stored */
@@ -55,7 +60,7 @@ export type HomeworkStatus = HomeworkStoredStatus | 'overdue'
 
 export interface Homework {
   id: string
-  title: string
+  title: L10n
   subject: Subject
   lessonId?: string
   /** Offset in days from the seed date; resolved into dueDate when seeding */
@@ -63,7 +68,7 @@ export interface Homework {
   difficulty: Difficulty
   estimatedMin: number
   xpReward: number
-  description: string
+  description: L10n
   questions: Question[]
 }
 
@@ -92,7 +97,7 @@ export interface LeaderboardEntry {
   /** Rank in the previous period — used to compute ↑↓ */
   prevRank: Record<LeaderboardPeriod, number>
   streak: number
-  school: string
+  school: L10n
 }
 
 export interface RankedEntry {
@@ -104,19 +109,20 @@ export interface RankedEntry {
   change: number
   streak: number
   isMe: boolean
-  school: string
+  /** undefined for the current user */
+  school?: L10n
 }
 
 export type BadgeTier = 'bronze' | 'silver' | 'gold' | 'cosmic'
 
 export interface BadgeDefinition {
   id: string
-  name: string
-  description: string
+  name: L10n
+  description: L10n
   icon: string
   tier: BadgeTier
   /** Human hint shown on locked badges */
-  hint: string
+  hint: L10n
 }
 
 export type AttendanceStatus = 'present' | 'absent'
@@ -129,32 +135,38 @@ export interface AttendanceRecord {
 
 export type NotificationKind = 'badge' | 'deadline' | 'streak' | 'level' | 'info'
 
+/**
+ * Stored language-neutral: the text is rendered from `kind` + `params`
+ * in the viewer's current language (see lib/notifications.ts).
+ */
 export interface AppNotification {
   id: string
   kind: NotificationKind
-  title: string
-  body: string
+  params?: Record<string, string | number>
   createdAt: string
   read: boolean
   href?: string
 }
 
+export type XpSource = { type: 'lesson' | 'homework'; id: string }
+
 export interface XpEvent {
   id: string
   amount: number
-  reason: string
+  source: XpSource
   at: string
 }
 
 export type RewardEvent =
-  | { id: string; type: 'xp'; amount: number; reason: string }
+  | { id: string; type: 'xp'; amount: number; source: XpSource }
   | { id: string; type: 'badge'; badgeId: string }
   | { id: string; type: 'level'; level: number }
   | { id: string; type: 'streak'; days: number }
 
 export interface LevelInfo {
   level: number
-  title: string
+  /** Index of the level title (see i18n keys level.0 … level.7) */
+  tier: number
   xpIntoLevel: number
   xpForLevel: number
   progress: number

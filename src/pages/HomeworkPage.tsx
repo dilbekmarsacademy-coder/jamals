@@ -1,3 +1,4 @@
+import { useT } from '@/i18n'
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
@@ -13,13 +14,14 @@ import { useQuery } from '@/hooks/useQuery'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { api } from '@/services/api'
 import { useAppStore } from '@/store/useAppStore'
-import { getHomeworkStatus, STATUS_META, SUBJECT_META } from '@/lib/homework'
+import { getHomeworkStatus, STATUS_META } from '@/lib/homework'
 import { cn } from '@/lib/utils'
 
 const COLUMNS: HomeworkStatus[] = ['not_started', 'in_progress', 'overdue', 'done']
 type SubjectFilter = 'all' | Subject
 
 export default function HomeworkPage() {
+  const { t, tr } = useT()
   const { data: list, loading } = useQuery('homework', api.getHomework)
   const progress = useAppStore((s) => s.homeworkProgress)
   const [params, setParams] = useSearchParams()
@@ -35,9 +37,9 @@ export default function HomeworkPage() {
       .map((hw) => ({ hw, progress: progress[hw.id], status: getHomeworkStatus(progress[hw.id], now) }))
       .filter((x) => x.progress)
       .filter((x) => subject === 'all' || x.hw.subject === subject)
-      .filter((x) => !q || x.hw.title.toLowerCase().includes(q) || x.hw.description.toLowerCase().includes(q))
+      .filter((x) => !q || tr(x.hw.title).toLowerCase().includes(q) || tr(x.hw.description).toLowerCase().includes(q))
       .sort((a, b) => a.progress.dueDate.localeCompare(b.progress.dueDate))
-  }, [list, progress, subject, query])
+  }, [list, progress, subject, query, tr])
 
   const openId = params.get('open')
   const openItem = openId
@@ -52,19 +54,19 @@ export default function HomeworkPage() {
 
   return (
     <>
-      <PageHeader title="Uy vazifalari" subtitle="Vazifalar holati va muddatlari. Kartani bosib tafsilotlarni ko‘ring." />
+      <PageHeader title={t('hw.title')} subtitle={t('hw.subtitle')} />
 
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1 sm:max-w-xs">
           <Search className="pointer-events-none absolute left-3 z-10 top-1/2 size-4 -translate-y-1/2 text-muted" />
-          <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Vazifa qidirish..." className="pl-9 pr-8" />
+          <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('hw.search')} className="pl-9 pr-8" />
           {query && (
-            <button onClick={() => setQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer rounded p-1 text-muted hover:text-foreground" aria-label="Tozalash">
+            <button onClick={() => setQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer rounded p-1 text-muted hover:text-foreground" aria-label={t('action.clear')}>
               <X className="size-3.5" />
             </button>
           )}
         </div>
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Fan bo‘yicha filter">
+        <div className="flex flex-wrap gap-2" role="group" aria-label={t('hw.filterAria')}>
           {(['all', 'math', 'reading', 'writing'] as SubjectFilter[]).map((s) => (
             <button
               key={s}
@@ -74,7 +76,7 @@ export default function HomeworkPage() {
                 subject === s ? 'border-foreground bg-foreground text-background' : 'border-border bg-surface text-muted hover:text-foreground',
               )}
             >
-              {s === 'all' ? 'Hammasi' : SUBJECT_META[s].label}
+              {s === 'all' ? t('hw.all') : t(`subject.${s}`)}
             </button>
           ))}
         </div>
@@ -85,7 +87,7 @@ export default function HomeworkPage() {
           <TabsList className="flex w-full overflow-x-auto">
             {COLUMNS.map((c) => (
               <TabsTrigger key={c} value={c} className="flex-1 px-2 text-xs">
-                {STATUS_META[c].label.split(' ')[0]} <span className="ml-1 tabular-nums text-subtle">{byStatus(c).length}</span>
+                {t(`status.${c}`)} <span className="ml-1 tabular-nums text-subtle">{byStatus(c).length}</span>
               </TabsTrigger>
             ))}
           </TabsList>
@@ -97,10 +99,10 @@ export default function HomeworkPage() {
           const meta = STATUS_META[col]
           const colItems = byStatus(col)
           return (
-            <section key={col} className="flex flex-col rounded-xl bg-surface-sunken p-3" aria-label={meta.label}>
+            <section key={col} className="flex flex-col rounded-xl bg-surface-sunken p-3" aria-label={t(`status.${col}`)}>
               <header className="mb-3 flex items-center gap-2 px-1">
                 <span className={cn('size-2.5 rounded-full', meta.dot)} />
-                <h2 className="text-sm font-semibold">{meta.label}</h2>
+                <h2 className="text-sm font-semibold">{t(`status.${col}`)}</h2>
                 <span className="ml-auto text-[13px] tabular-nums text-muted">{colItems.length}</span>
               </header>
               <div className="flex min-h-24 flex-col gap-3">
@@ -114,7 +116,7 @@ export default function HomeworkPage() {
                   </AnimatePresence>
                 )}
                 {!loading && colItems.length === 0 && (
-                  <p className="py-6 text-center text-[13px] text-subtle">{col === 'overdue' ? 'Muddati o‘tgan vazifa yo‘q' : 'Vazifa yo‘q'}</p>
+                  <p className="py-6 text-center text-[13px] text-subtle">{col === 'overdue' ? t('hw.noOverdue') : t('hw.empty')}</p>
                 )}
               </div>
             </section>

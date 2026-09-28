@@ -1,6 +1,7 @@
+import { t, type TKey } from '@/i18n'
 import type { LevelInfo } from '@/types'
 
-const TITLES = ['Boshlang‘ich', 'Asosiy', 'O‘rta', 'O‘rtadan yuqori', 'Yuqori', 'Ilg‘or', 'Ekspert', 'Master']
+const TIER_COUNT = 8
 
 /** XP needed to go from `level` to `level + 1` — grows gently so early levels feel fast */
 export const xpForLevel = (level: number) => 300 + (level - 1) * 150
@@ -15,7 +16,7 @@ export function getLevelInfo(totalXp: number): LevelInfo {
   const need = xpForLevel(level)
   return {
     level,
-    title: TITLES[Math.min(TITLES.length - 1, Math.floor((level - 1) / 2))],
+    tier: Math.min(TIER_COUNT - 1, Math.floor((level - 1) / 2)),
     xpIntoLevel: remaining,
     xpForLevel: need,
     progress: remaining / need,
@@ -29,3 +30,6 @@ export const xpAtLevel = (level: number) => {
   for (let l = 1; l < level; l++) sum += xpForLevel(l)
   return sum
 }
+
+/** Localized level title for a tier index */
+export const levelTitle = (tier: number) => t(`level.${tier}` as TKey)

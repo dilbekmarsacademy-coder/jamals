@@ -1,4 +1,4 @@
-import type { LeaderboardEntry, LeaderboardPeriod, RankedEntry, UserProfile } from '@/types'
+import type { L10n, LeaderboardEntry, LeaderboardPeriod, RankedEntry, UserProfile } from '@/types'
 
 interface Me {
   user: UserProfile
@@ -16,7 +16,7 @@ export function rankLeaderboard(entries: LeaderboardEntry[], me: Me, period: Lea
       xp: e.xp[period], prev: e.prevRank[period] as number | undefined, streak: e.streak, isMe: false,
     })),
     {
-      id: me.user.id, name: me.user.name || 'Siz', avatarSeed: me.user.avatarSeed, school: 'Siz',
+      id: me.user.id, name: me.user.name, avatarSeed: me.user.avatarSeed, school: undefined as L10n | undefined,
       xp: me.xp, prev: me.prevRank, streak: me.streak, isMe: true,
     },
   ]

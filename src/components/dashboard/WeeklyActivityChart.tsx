@@ -2,7 +2,8 @@ import { Activity } from 'lucide-react'
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { DayActivity } from '@/lib/activity'
-import { formatDate, fromDateKey } from '@/lib/date'
+import { formatDate, fromDateKey, weekdaysShort } from '@/lib/date'
+import { useT } from '@/i18n'
 import { cn } from '@/lib/utils'
 
 interface Props {
@@ -14,6 +15,7 @@ interface Props {
 
 /** Single-series XP bars for the last 7 days — the title names the series, so no legend */
 export function WeeklyActivityChart({ days, total, prevTotal, activeCount }: Props) {
+  const { t } = useT()
   const max = Math.max(...days.map((d) => d.xp), 50)
   const delta = total - prevTotal
 
@@ -21,29 +23,29 @@ export function WeeklyActivityChart({ days, total, prevTotal, activeCount }: Pro
     <Card className="flex flex-col">
       <CardHeader>
         <CardTitle>
-          <Activity /> Haftalik faollik
+          <Activity /> {t('dash.activity')}
         </CardTitle>
-        <span className="text-[13px] text-muted">XP / kun</span>
+        <span className="text-[13px] text-muted">{t('dash.xpPerDay')}</span>
       </CardHeader>
 
       <div className="flex items-baseline gap-2">
         <span className="text-3xl font-semibold tabular-nums">{activeCount}</span>
-        <span className="text-sm text-muted">/ 7 kun faol</span>
+        <span className="text-sm text-muted">{t('dash.activeDays')}</span>
       </div>
       <p className="mt-0.5 text-[13px] text-muted">
-        Bu hafta <span className="font-medium text-foreground">{total} XP</span>
+        {t('dash.thisWeek')} <span className="font-medium text-foreground">{total} XP</span>
         {prevTotal > 0 && (
           <>
             {' · '}
             <span className={delta >= 0 ? 'font-medium text-mint-500' : 'font-medium text-danger-500'}>
               {delta >= 0 ? '+' : '−'}{Math.abs(delta)} XP
             </span>{' '}
-            o‘tgan haftaga nisbatan
+            {t('dash.vsLastWeek')}
           </>
         )}
       </p>
 
-      <div className="mt-5 flex h-32 items-end gap-2 border-b border-card-border" role="img" aria-label="Oxirgi 7 kunlik XP">
+      <div className="mt-5 flex h-32 items-end gap-2 border-b border-card-border" role="img" aria-label={t('dash.chartAria')}>
         {days.map((d, i) => (
           <Tooltip key={d.key}>
             <TooltipTrigger asChild>
@@ -58,8 +60,8 @@ export function WeeklyActivityChart({ days, total, prevTotal, activeCount }: Pro
               </div>
             </TooltipTrigger>
             <TooltipContent side="top">
-              <div className="font-semibold">{formatDate(fromDateKey(d.key))}{d.isToday && ' · bugun'}</div>
-              <div className="text-muted">{d.xp ? `${d.xp} XP` : 'Faollik yo‘q'}</div>
+              <div className="font-semibold">{formatDate(fromDateKey(d.key))}{d.isToday && t('dash.todaySuffix')}</div>
+              <div className="text-muted">{d.xp ? `${d.xp} XP` : t('dash.noActivity')}</div>
             </TooltipContent>
           </Tooltip>
         ))}
@@ -67,7 +69,7 @@ export function WeeklyActivityChart({ days, total, prevTotal, activeCount }: Pro
       <div className="mt-1.5 flex gap-2">
         {days.map((d) => (
           <span key={d.key} className={cn('flex-1 text-center text-xs', d.isToday ? 'font-semibold text-foreground' : 'text-muted')}>
-            {d.label}
+            {weekdaysShort()[d.weekday]}
           </span>
         ))}
       </div>

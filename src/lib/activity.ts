@@ -1,9 +1,10 @@
 import type { XpEvent } from '@/types'
-import { addDays, toDateKey, WEEKDAYS_SHORT_UZ } from './date'
+import { addDays, toDateKey } from './date'
 
 export interface DayActivity {
   key: string
-  label: string
+  /** Monday-first weekday index (0 = Monday) — the label is localized at render time */
+  weekday: number
   xp: number
   isToday: boolean
 }
@@ -24,7 +25,7 @@ export function getWeeklyActivity(log: XpEvent[], now = new Date()) {
   for (let i = 6; i >= 0; i--) {
     const d = addDays(now, -i)
     const k = toDateKey(d)
-    days.push({ key: k, label: WEEKDAYS_SHORT_UZ[(d.getDay() + 6) % 7], xp: byDay.get(k) ?? 0, isToday: i === 0 })
+    days.push({ key: k, weekday: (d.getDay() + 6) % 7, xp: byDay.get(k) ?? 0, isToday: i === 0 })
   }
   let prevTotal = 0
   for (let i = 7; i < 14; i++) prevTotal += byDay.get(toDateKey(addDays(now, -i))) ?? 0

@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useAppStore } from '@/store/useAppStore'
 import type { NotificationKind } from '@/types'
 import { timeAgo } from '@/lib/date'
+import { renderNotification } from '@/lib/notifications'
+import { useT } from '@/i18n'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
@@ -23,6 +25,7 @@ export function NotificationsBell({ align = 'right' }: { align?: 'left' | 'right
   const markRead = useAppStore((s) => s.markNotificationRead)
   const markAll = useAppStore((s) => s.markAllNotificationsRead)
   const navigate = useNavigate()
+  const { t } = useT()
   const unread = notifications.filter((n) => !n.read).length
 
   useEffect(() => {
@@ -39,7 +42,7 @@ export function NotificationsBell({ align = 'right' }: { align?: 'left' | 'right
 
   return (
     <div className="relative" ref={ref}>
-      <Button variant="ghost" size="icon" onClick={() => setOpen((o) => !o)} aria-label="Bildirishnomalar" className="relative">
+      <Button variant="ghost" size="icon" onClick={() => setOpen((o) => !o)} aria-label={t('notif.title')} className="relative">
         <Bell className="!size-5" />
         {unread > 0 && (
           <span className="absolute right-1 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-danger-500 px-1 text-[10px] font-semibold text-white">
@@ -60,18 +63,19 @@ export function NotificationsBell({ align = 'right' }: { align?: 'left' | 'right
             )}
           >
             <div className="flex items-center justify-between border-b px-4 py-3">
-              <span className="font-semibold">Bildirishnomalar</span>
+              <span className="font-semibold">{t('notif.title')}</span>
               {unread > 0 && (
                 <button onClick={markAll} className="flex cursor-pointer items-center gap-1 text-xs font-semibold text-nova-400 hover:underline">
-                  <CheckCheck className="size-3.5" /> Barchasini o‘qilgan deb belgilash
+                  <CheckCheck className="size-3.5" /> {t('notif.markAll')}
                 </button>
               )}
             </div>
             <div className="max-h-[60dvh] overflow-y-auto scrollbar-thin">
-              {notifications.length === 0 && <p className="p-6 text-center text-sm text-muted">Yangi bildirishnoma yo‘q</p>}
+              {notifications.length === 0 && <p className="p-6 text-center text-sm text-muted">{t('notif.empty')}</p>}
               {notifications.map((n) => {
                 const k = KIND[n.kind]
                 const Icon = k.icon
+                const text = renderNotification(n)
                 return (
                   <button
                     key={n.id}
@@ -85,15 +89,15 @@ export function NotificationsBell({ align = 'right' }: { align?: 'left' | 'right
                       !n.read && 'bg-primary-soft',
                     )}
                   >
-                    <span className={cn('grid size-9 shrink-0 place-items-center rounded-lg', k.className)}>
+                    <span className={cn('grid size-9 shrink-0 place-items-center rounded-lg', k.className)} aria-hidden>
                       <Icon className="size-4" />
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="flex items-center gap-2 text-sm font-semibold">
-                        {n.title}
+                        {text.title}
                         {!n.read && <span className="size-1.5 rounded-full bg-ember-500" />}
                       </span>
-                      <span className="line-clamp-2 text-xs text-muted">{n.body}</span>
+                      <span className="line-clamp-2 text-xs text-muted">{text.body}</span>
                       <span className="mt-0.5 block text-xs text-subtle">{timeAgo(n.createdAt)}</span>
                     </span>
                   </button>

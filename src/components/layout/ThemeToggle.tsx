@@ -1,13 +1,15 @@
+import { useT } from '@/i18n'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Moon, Sun } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { Button } from '@/components/ui/button'
 
 export function ThemeToggle() {
+  const { t } = useT()
   const theme = useAppStore((s) => s.theme)
   const toggle = useAppStore((s) => s.toggleTheme)
   return (
-    <Button variant="ghost" size="icon" onClick={toggle} aria-label={theme === 'dark' ? 'Yorug‘ rejim' : 'Qorong‘i rejim'}>
+    <Button variant="ghost" size="icon" onClick={toggle} aria-label={theme === 'dark' ? t('theme.toLight') : t('theme.toDark')}>
       <AnimatePresence mode="wait" initial={false}>
         <motion.span
           key={theme}

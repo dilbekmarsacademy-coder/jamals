@@ -1,3 +1,4 @@
+import { useT } from '@/i18n'
 import { useCallback, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
@@ -24,6 +25,7 @@ const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).p
 
 export default function LessonPage() {
   const { id = '' } = useParams()
+  const { t } = useT()
   const { data: lessons, loading } = useQuery('lessons', api.getLessons)
   const lesson = lessons?.find((l) => l.id === id)
 
@@ -31,8 +33,8 @@ export default function LessonPage() {
   if (!lesson || !lessons)
     return (
       <Card className="text-center">
-        <p>Dars topilmadi.</p>
-        <Button asChild variant="link"><Link to="/lessons">Darslar ro‘yxatiga</Link></Button>
+        <p>{t('lesson.notFound')}</p>
+        <Button asChild variant="link"><Link to="/lessons">{t('lesson.toList')}</Link></Button>
       </Card>
     )
 
@@ -47,6 +49,7 @@ function LessonView({ lessonId }: { lessonId: string }) {
   const prev = lessons[idx - 1]
   const next = lessons[idx + 1]
   const navigate = useNavigate()
+  const { t, tr } = useT()
 
   const progress = useAppStore((s) => s.lessonProgress[lessonId])
   const hwProgress = useAppStore((s) => s.homeworkProgress[lesson.homeworkId])
@@ -88,14 +91,14 @@ function LessonView({ lessonId }: { lessonId: string }) {
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link to="/lessons" className="flex items-center gap-1.5 text-sm font-semibold text-muted hover:text-foreground">
-          <ArrowLeft className="size-4" /> Barcha darslar
+          <ArrowLeft className="size-4" /> {t('lesson.allLessons')}
         </Link>
         <div className="flex gap-2">
           <Button variant="secondary" size="sm" disabled={!prev} onClick={() => prev && navigate(`/lessons/${prev.id}`)}>
-            <ChevronLeft /> Oldingi
+            <ChevronLeft /> {t('action.prev')}
           </Button>
           <Button variant="secondary" size="sm" disabled={!next} onClick={() => next && navigate(`/lessons/${next.id}`)}>
-            Keyingi <ChevronRight />
+            {t('action.next')} <ChevronRight />
           </Button>
         </div>
       </div>
@@ -117,9 +120,9 @@ function LessonView({ lessonId }: { lessonId: string }) {
               {player.error && (
                 <div className="absolute inset-0 grid place-items-center p-6 text-center text-sm text-white/80">
                   <div>
-                    Video yuklanmadi.{' '}
+                    {t('lesson.videoError')}{' '}
                     <a className="underline" href={`https://www.youtube.com/watch?v=${lesson.youtubeId}`} target="_blank" rel="noreferrer">
-                      YouTube’da ochish
+                      {t('lesson.openYoutube')}
                     </a>
                   </div>
                 </div>
@@ -131,31 +134,31 @@ function LessonView({ lessonId }: { lessonId: string }) {
           <Card className={cn('p-4 sm:p-5', completed && 'border-l-4 border-l-mint-500')}>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               <div className="flex min-w-0 flex-1 items-center gap-4">
-                <ProgressRing value={watched} size={52} stroke={5} color={completed ? 'var(--mint)' : undefined} label="Ko‘rilgan qism">
+                <ProgressRing value={watched} size={52} stroke={5} color={completed ? 'var(--mint)' : undefined} label={t('lesson.watchedPart')}>
                   {completed ? <CircleCheck className="size-5 text-mint-500" /> : <span className="text-[13px] font-semibold tabular-nums">{Math.round(watched * 100)}%</span>}
                 </ProgressRing>
                 <div className="min-w-0 flex-1">
                   {completed ? (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                      <p className="font-semibold">Dars tugallandi · +{lesson.xpReward} XP</p>
+                      <p className="font-semibold">{t('lesson.completedXp', { xp: lesson.xpReward })}</p>
                       <p className="text-sm text-muted">
-                        Keyingi qadam — uy vazifasi.{' '}
-                        {hwProgress?.status === 'done' ? 'U allaqachon bajarilgan.' : '3 ta savol, taxminan 10–20 daqiqa.'}
+                        {t('lesson.nextStep')}{' '}
+                        {hwProgress?.status === 'done' ? t('lesson.hwDone') : t('lesson.hwEstimate')}
                       </p>
                     </motion.div>
                   ) : (
                     <>
                       <div className="flex items-center justify-between gap-2 text-sm">
-                        <span className="font-medium">Ko‘rilgan qism</span>
+                        <span className="font-medium">{t('lesson.watchedPart')}</span>
                         <span className="tabular-nums text-muted">
-                          {player.duration ? `${fmt(player.position)} / ${fmt(player.duration)}` : `~${lesson.durationMin} daq`}
+                          {player.duration ? `${fmt(player.position)} / ${fmt(player.duration)}` : t('unit.min', { n: lesson.durationMin })}
                         </span>
                       </div>
                       <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-ring-track">
                         <div className="h-full rounded-full bg-primary transition-[width] duration-500" style={{ width: `${watched * 100}%` }} />
                       </div>
                       <p className="mt-1.5 text-[13px] text-muted">
-                        Videoning {Math.round(COMPLETE_AT * 100)}% qismi ko‘rilganda dars tugallanadi (+{lesson.xpReward} XP). Oldinga o‘tkazilgan qism hisobga olinmaydi.
+                        {t('lesson.rule', { pct: Math.round(COMPLETE_AT * 100), xp: lesson.xpReward })}
                       </p>
                     </>
                   )}
@@ -163,7 +166,7 @@ function LessonView({ lessonId }: { lessonId: string }) {
               </div>
               {completed && (
                 <Button onClick={goHomework} className="shrink-0">
-                  <ClipboardList /> {hwProgress?.status === 'done' ? 'Natijani ko‘rish' : 'Uy vazifasiga o‘tish'} <ArrowRight />
+                  <ClipboardList /> {hwProgress?.status === 'done' ? t('lesson.seeResult') : t('lesson.goHomework')} <ArrowRight />
                 </Button>
               )}
             </div>
@@ -171,9 +174,9 @@ function LessonView({ lessonId }: { lessonId: string }) {
               <button
                 onClick={() => completeLesson(lessonId)}
                 className="mt-3 inline-flex cursor-pointer items-center gap-1.5 text-xs text-subtle hover:text-foreground"
-                title="Faqat development rejimida ko‘rinadi"
+                title={t('lesson.devOnly')}
               >
-                <FlaskConical className="size-3.5" /> Dev: darsni tugallangan deb belgilash
+                <FlaskConical className="size-3.5" /> {t('lesson.devComplete')}
               </button>
             )}
           </Card>
@@ -186,10 +189,10 @@ function LessonView({ lessonId }: { lessonId: string }) {
               <span className="ml-auto flex items-center gap-1 text-[13px] text-muted"><Zap className="size-3.5 text-flare-500" /> {lesson.xpReward} XP</span>
             </div>
             <h1 className="mt-3 text-2xl font-semibold">
-              <span className="text-subtle">{lesson.order}.</span> {lesson.title}
+              <span className="text-subtle">{lesson.order}.</span> {tr(lesson.title)}
             </h1>
-            <p className="mt-2 text-sm leading-relaxed text-muted">{lesson.description}</p>
-            <p className="mt-3 text-[13px] text-muted">Video muallifi: <span className="font-medium text-foreground">{lesson.channel}</span> (YouTube)</p>
+            <p className="mt-2 text-sm leading-relaxed text-muted">{tr(lesson.description)}</p>
+            <p className="mt-3 text-[13px] text-muted">{t('lesson.author')} <span className="font-medium text-foreground">{lesson.channel}</span> (YouTube)</p>
           </Card>
         </div>
 
@@ -198,7 +201,7 @@ function LessonView({ lessonId }: { lessonId: string }) {
           <Materials materials={lesson.materials} />
           <Card>
             <CardHeader>
-              <CardTitle><ListChecks /> Kurs dasturi</CardTitle>
+              <CardTitle><ListChecks /> {t('lesson.syllabus')}</CardTitle>
             </CardHeader>
             <ol className="-mx-2 flex max-h-[28rem] flex-col gap-0.5 overflow-y-auto scrollbar-thin">
               {lessons.map((l) => {
@@ -221,7 +224,7 @@ function LessonView({ lessonId }: { lessonId: string }) {
                       >
                         {done ? <CircleCheck className="size-4" /> : l.order}
                       </span>
-                      <span className={cn('min-w-0 flex-1 truncate', active ? 'font-medium' : 'text-muted')}>{l.title}</span>
+                      <span className={cn('min-w-0 flex-1 truncate', active ? 'font-medium' : 'text-muted')}>{tr(l.title)}</span>
                     </Link>
                   </li>
                 )
@@ -236,11 +239,12 @@ function LessonView({ lessonId }: { lessonId: string }) {
 
 function Materials({ materials }: { materials: LessonMaterial[] }) {
   const [notice, setNotice] = useState<string | null>(null)
+  const { t, tr } = useT()
   const ICON = { pdf: FileText, worksheet: ListChecks, link: LinkIcon }
   return (
     <Card>
       <CardHeader>
-        <CardTitle><FileText /> Qo‘shimcha materiallar</CardTitle>
+        <CardTitle><FileText /> {t('lesson.materials')}</CardTitle>
       </CardHeader>
       <ul className="flex flex-col gap-2">
         {materials.map((m) => {
@@ -265,9 +269,9 @@ function Materials({ materials }: { materials: LessonMaterial[] }) {
                   <Icon className="size-4" />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium">{m.title}</span>
+                  <span className="block truncate text-sm font-medium">{tr(m.title)}</span>
                   <span className="text-xs text-muted">
-                    {notice === m.id ? 'Namuna fayl: server ulangach yuklab olish mumkin bo‘ladi' : external ? 'Tashqi havola · yangi oynada ochiladi' : `${m.type.toUpperCase()} · ${m.size}`}
+                    {notice === m.id ? t('lesson.sampleFile') : external ? t('lesson.externalLink') : `${m.type.toUpperCase()} · ${m.size}`}
                   </span>
                 </span>
                 {external && <ExternalLink className="size-4 text-muted" />}

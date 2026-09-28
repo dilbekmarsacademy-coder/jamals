@@ -5,7 +5,10 @@ import { useAppStore } from '@/store/useAppStore'
 import { badges } from '@/data/badges'
 import { BadgeIcon } from '@/components/common/BadgeIcon'
 import { subtleCelebration } from '@/lib/celebrate'
-import { getLevelInfo, xpAtLevel } from '@/lib/levels'
+import { getLevelInfo, levelTitle, xpAtLevel } from '@/lib/levels'
+import { lessons } from '@/data/lessons'
+import { homework } from '@/data/homework'
+import { t, tr, useT } from '@/i18n'
 import type { RewardEvent } from '@/types'
 import { cn } from '@/lib/utils'
 
@@ -43,6 +46,7 @@ function RewardToast({ reward, onDone }: { reward: RewardEvent; onDone: () => vo
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  useT() // re-render on language change
   const content = describe(reward)
   const big = reward.type === 'badge' || reward.type === 'level'
 
@@ -61,7 +65,7 @@ function RewardToast({ reward, onDone }: { reward: RewardEvent; onDone: () => vo
         <p className="text-sm font-semibold">{content.title}</p>
         {content.body && <p className="mt-0.5 truncate text-[13px] text-muted">{content.body}</p>}
       </div>
-      <button onClick={onDone} className="-m-1 cursor-pointer rounded-md p-1 text-subtle hover:bg-surface-sunken hover:text-foreground" aria-label="Yopish">
+      <button onClick={onDone} className="-m-1 cursor-pointer rounded-md p-1 text-subtle hover:bg-surface-sunken hover:text-foreground" aria-label={t('action.close')}>
         <X className="size-4" />
       </button>
     </motion.div>
@@ -70,25 +74,42 @@ function RewardToast({ reward, onDone }: { reward: RewardEvent; onDone: () => vo
 
 function describe(r: RewardEvent) {
   switch (r.type) {
-    case 'xp':
-      return { eyebrow: 'XP qo‘shildi', title: `+${r.amount} XP`, body: r.reason, icon: <Zap className="size-4" />, iconClass: 'bg-flare-500/15 text-flare-500' }
+    case 'xp': {
+      const title =
+        r.source.type === 'lesson'
+          ? lessons.find((l) => l.id === r.source.id)?.title
+          : homework.find((h) => h.id === r.source.id)?.title
+      return {
+        eyebrow: t('reward.xp.eyebrow'),
+        title: `+${r.amount} XP`,
+        body: title ? t(r.source.type === 'lesson' ? 'reward.lesson' : 'reward.homework', { title: tr(title) }) : undefined,
+        icon: <Zap className="size-4" />,
+        iconClass: 'bg-flare-500/15 text-flare-500',
+      }
+    }
     case 'streak':
-      return { eyebrow: 'Kunlik seriya', title: `${r.days} kun ketma-ket`, body: 'Bugungi mashg‘ulot hisobga olindi', icon: <Flame className="size-4" />, iconClass: 'bg-ember-500/15 text-ember-500' }
+      return {
+        eyebrow: t('reward.streak.eyebrow'),
+        title: t('reward.streak.title', { n: r.days }),
+        body: t('reward.streak.body'),
+        icon: <Flame className="size-4" />,
+        iconClass: 'bg-ember-500/15 text-ember-500',
+      }
     case 'badge': {
       const b = badges.find((x) => x.id === r.badgeId)
       return {
-        eyebrow: 'Yangi yutuq',
-        title: b?.name ?? 'Yutuq',
-        body: b?.description,
+        eyebrow: t('reward.badge.eyebrow'),
+        title: b ? tr(b.name) : r.badgeId,
+        body: b ? tr(b.description) : undefined,
         icon: b ? <BadgeIcon name={b.icon} className="size-4" /> : <Award className="size-4" />,
         iconClass: 'bg-primary-soft text-primary-text',
       }
     }
     case 'level':
       return {
-        eyebrow: 'Daraja oshdi',
-        title: `${r.level}-daraja · ${getLevelInfo(xpAtLevel(r.level)).title}`,
-        body: 'Profilda daraja tarixini ko‘rishingiz mumkin',
+        eyebrow: t('reward.level.eyebrow'),
+        title: `${t('level.n', { n: r.level })} · ${levelTitle(getLevelInfo(xpAtLevel(r.level)).tier)}`,
+        body: t('reward.level.body'),
         icon: <TrendingUp className="size-4" />,
         iconClass: 'bg-primary-soft text-primary-text',
       }

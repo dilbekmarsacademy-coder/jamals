@@ -1,3 +1,4 @@
+import { useT } from '@/i18n'
 import { useNavigate } from 'react-router-dom'
 import { CalendarClock, CirclePlay, Clock, Play, RotateCcw, Zap, Eye } from 'lucide-react'
 import type { Homework, HomeworkProgress, HomeworkStatus } from '@/types'
@@ -21,6 +22,7 @@ interface Props {
 export function HomeworkDialog({ item, onClose }: Props) {
   const navigate = useNavigate()
   const startHomework = useAppStore((s) => s.startHomework)
+  const { t, tr } = useT()
   if (!item) return <Dialog open={false} />
 
   const { hw, progress, status } = item
@@ -38,18 +40,18 @@ export function HomeworkDialog({ item, onClose }: Props) {
         <div className="flex flex-wrap items-center gap-2 pr-8">
           <SubjectPill subject={hw.subject} />
           <Pill className={cn(meta.bg, meta.text, meta.ring)}>
-            <span className={cn('size-1.5 rounded-full', meta.dot)} /> {meta.label}
+            <span className={cn('size-1.5 rounded-full', meta.dot)} /> {t(`status.${status}`)}
           </Pill>
         </div>
-        <DialogTitle className="mt-3">{hw.title}</DialogTitle>
-        <DialogDescription className="mt-1">{hw.description}</DialogDescription>
+        <DialogTitle className="mt-3">{tr(hw.title)}</DialogTitle>
+        <DialogDescription className="mt-1">{tr(hw.description)}</DialogDescription>
 
         <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
-          <Info icon={<CalendarClock className="size-4" />} label="Muddat" value={formatDateLong(progress.dueDate)} sub={status === 'done' ? undefined : relativeDue(progress.dueDate)} danger={status === 'overdue'} />
-          <Info icon={<Clock className="size-4" />} label="Taxminiy vaqt" value={`~${hw.estimatedMin} daqiqa`} sub={`${hw.questions.length} ta savol`} />
-          <Info icon={<Zap className="size-4" />} label="Mukofot" value={`${hw.xpReward} XP`} sub={status === 'overdue' ? 'Kechikkani uchun 50%' : 'To‘liq XP 100% natijada'} />
+          <Info icon={<CalendarClock className="size-4" />} label={t('hw.deadline')} value={formatDateLong(progress.dueDate)} sub={status === 'done' ? undefined : relativeDue(progress.dueDate)} danger={status === 'overdue'} />
+          <Info icon={<Clock className="size-4" />} label={t('hw.estimate')} value={t('unit.minutes', { n: hw.estimatedMin })} sub={t('hw.questions', { n: hw.questions.length })} />
+          <Info icon={<Zap className="size-4" />} label={t('hw.reward')} value={`${hw.xpReward} XP`} sub={status === 'overdue' ? t('hw.lateHalf') : t('hw.fullXp')} />
           <div className="rounded-lg border border-border p-3">
-            <div className="text-xs text-muted">Qiyinlik</div>
+            <div className="text-xs text-muted">{t('hw.difficulty')}</div>
             <div className="mt-1.5"><DifficultyBars level={hw.difficulty} /></div>
           </div>
         </div>
@@ -61,8 +63,8 @@ export function HomeworkDialog({ item, onClose }: Props) {
           >
             <CirclePlay className="size-5 shrink-0 text-muted" />
             <span className="min-w-0 flex-1 text-sm">
-              <span className="block text-xs text-muted">Bog‘liq dars</span>
-              <span className="block truncate font-semibold">{lesson.title}</span>
+              <span className="block text-xs text-muted">{t('hw.relatedLesson')}</span>
+              <span className="block truncate font-semibold">{tr(lesson.title)}</span>
             </span>
           </button>
         )}
@@ -72,12 +74,12 @@ export function HomeworkDialog({ item, onClose }: Props) {
             <ProgressRing value={answered / hw.questions.length} size={40} stroke={4}>
               <span className="text-xs font-semibold">{answered}/{hw.questions.length}</span>
             </ProgressRing>
-            <span className="text-sm text-muted">To‘xtagan joyingizdan davom etasiz.</span>
+            <span className="text-sm text-muted">{t('hw.resume')}</span>
           </div>
         )}
 
         <Button className="mt-6 w-full" variant={status === 'done' ? 'secondary' : 'default'} onClick={go}>
-          {status === 'done' ? <><Eye /> Natijani ko‘rish</> : answered > 0 ? <><RotateCcw /> Davom ettirish</> : <><Play className="fill-current" /> Boshlash</>}
+          {status === 'done' ? <><Eye /> {t('hw.seeResult')}</> : answered > 0 ? <><RotateCcw /> {t('hw.continue')}</> : <><Play className="fill-current" /> {t('hw.start')}</>}
         </Button>
       </DialogContent>
     </Dialog>

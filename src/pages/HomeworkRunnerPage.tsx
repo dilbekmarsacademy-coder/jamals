@@ -1,3 +1,4 @@
+import { useT } from '@/i18n'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Check, CirclePlay, ClipboardList, Keyboard, Lightbulb, X } from 'lucide-react'
@@ -21,6 +22,7 @@ export default function HomeworkRunnerPage() {
   const answer = useAppStore((s) => s.answerQuestion)
   const submit = useAppStore((s) => s.submitHomework)
   const navigate = useNavigate()
+  const { t, tr } = useT()
 
   const firstUnanswered = hw ? Math.max(0, hw.questions.findIndex((q) => progress?.answers[q.id] === undefined)) : 0
   const [step, setStep] = useState(firstUnanswered)
@@ -48,7 +50,7 @@ export default function HomeworkRunnerPage() {
   if (!hw || !progress || !q)
     return (
       <Card className="text-center">
-        Vazifa topilmadi. <Link className="text-primary-text underline" to="/homework">Uy vazifalariga qaytish</Link>
+        {t('hw.notFound')} <Link className="text-primary-text underline" to="/homework">{t('hw.backToList')}</Link>
       </Card>
     )
 
@@ -66,64 +68,60 @@ export default function HomeworkRunnerPage() {
     return (
       <div className="mx-auto flex max-w-3xl flex-col gap-5">
         <Link to="/homework" className="inline-flex w-fit items-center gap-1.5 text-sm text-muted hover:text-foreground">
-          <ArrowLeft className="size-4" /> Uy vazifalari
+          <ArrowLeft className="size-4" /> {t('hw.title')}
         </Link>
         <Card className="p-6">
           <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:text-left">
-            <ProgressRing value={score} size={112} stroke={9} color={good ? 'var(--mint)' : 'var(--flare)'} label="Natija">
+            <ProgressRing value={score} size={112} stroke={9} color={good ? 'var(--mint)' : 'var(--flare)'} label={t('hw.result.label')}>
               <div>
                 <div className="text-2xl font-semibold tabular-nums">{Math.round(score * 100)}%</div>
-                <div className="text-xs text-muted">{correct}/{total} to‘g‘ri</div>
+                <div className="text-xs text-muted">{t('hw.correctOf', { c: correct, n: total })}</div>
               </div>
             </ProgressRing>
             <div className="flex-1">
-              <p className="text-xs font-medium uppercase tracking-wide text-muted">Vazifa topshirildi</p>
-              <h1 className="mt-1 text-xl font-semibold">{hw.title}</h1>
+              <p className="text-xs font-medium uppercase tracking-wide text-muted">{t('hw.submitted')}</p>
+              <h1 className="mt-1 text-xl font-semibold">{tr(hw.title)}</h1>
               <p className="mt-1 text-sm text-muted">
-                {score === 1
-                  ? 'Barcha javoblar to‘g‘ri.'
-                  : good
-                    ? 'Yaxshi natija. Xato qilingan savollar tahlilini ko‘rib chiqing.'
-                    : 'Quyidagi tahlilni ko‘rib chiqing va kerak bo‘lsa darsni qayta ko‘ring.'}
-                {result && <> Hisobingizga <span className="font-medium text-foreground">+{result.xp} XP</span> qo‘shildi.</>}
+                {score === 1 ? t('hw.perfect') : good ? t('hw.good') : t('hw.review')}
+                {result && t('hw.xpAdded', { n: result.xp })}
               </p>
             </div>
           </div>
           <div className="mt-6 flex flex-wrap gap-2 border-t border-border pt-5">
             {nextLesson && (
               <Button onClick={() => navigate(`/lessons/${nextLesson.id}`)}>
-                <CirclePlay /> Keyingi dars: {nextLesson.title}
+                <CirclePlay /> {t('hw.nextLesson', { title: tr(nextLesson.title) })}
               </Button>
             )}
             {!good && lesson && (
               <Button variant="secondary" onClick={() => navigate(`/lessons/${lesson.id}`)}>
-                Darsni qayta ko‘rish
+                {t('hw.rewatch')}
               </Button>
             )}
             <Button variant="secondary" onClick={() => navigate('/homework')}>
-              <ClipboardList /> Boshqa vazifalar
+              <ClipboardList /> {t('hw.other')}
             </Button>
           </div>
         </Card>
 
-        <h2 className="mt-2 text-base font-semibold">Savollar tahlili</h2>
+        <h2 className="mt-2 text-base font-semibold">{t('hw.analysis')}</h2>
         {hw.questions.map((x, i) => {
           const a = progress.answers[x.id]
           const ok = a === x.answerIndex
           return (
             <Card key={x.id} className="p-5">
               <div className="flex items-start gap-3">
-                <span className={cn('mt-0.5 grid size-6 shrink-0 place-items-center rounded-md', ok ? 'bg-mint-500/15 text-mint-500' : 'bg-danger-500/12 text-danger-500')} aria-label={ok ? 'To‘g‘ri' : 'Noto‘g‘ri'}>
+                <span className={cn('mt-0.5 grid size-6 shrink-0 place-items-center rounded-md', ok ? 'bg-mint-500/15 text-mint-500' : 'bg-danger-500/12 text-danger-500')} aria-label={ok ? t('hw.correct') : t('hw.incorrect')}>
                   {ok ? <Check className="size-4" /> : <X className="size-4" />}
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-[15px] font-medium">{i + 1}. {x.prompt}</p>
                   <p className="mt-2 text-sm">
-                    <span className="text-muted">To‘g‘ri javob:</span> <span className="font-medium">{LETTERS[x.answerIndex]}) {x.choices[x.answerIndex]}</span>
-                    {!ok && a !== undefined && <span className="ml-2 text-danger-500">Sizning javobingiz: {LETTERS[a]}</span>}
+                    <span className="text-muted">{t('hw.correctAnswer')}</span> <span className="font-medium">{LETTERS[x.answerIndex]}) {x.choices[x.answerIndex]}</span>
+                    {!ok && a !== undefined && <span className="ml-2 text-danger-500">{t('hw.yourAnswer', { a: LETTERS[a] })}</span>}
                   </p>
                   <p className="mt-3 flex gap-2 rounded-lg bg-surface-sunken p-3 text-sm text-muted">
-                    <Lightbulb className="mt-0.5 size-4 shrink-0" /> {x.explanation}
+                    <Lightbulb className="mt-0.5 size-4 shrink-0" /> {tr(x.explanation)}
                   </p>
                 </div>
               </div>
@@ -138,19 +136,19 @@ export default function HomeworkRunnerPage() {
     <div className="mx-auto flex max-w-3xl flex-col gap-5">
       <div className="flex items-center justify-between gap-3">
         <Link to="/homework" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground">
-          <ArrowLeft className="size-4" /> Uy vazifalari
+          <ArrowLeft className="size-4" /> {t('hw.title')}
         </Link>
         <span className={cn('text-[13px]', status === 'overdue' ? 'font-medium text-danger-500' : 'text-muted')}>
-          Muddat: {relativeDue(progress.dueDate)}
+          {t('hw.dueOn', { date: relativeDue(progress.dueDate) })}
         </span>
       </div>
 
       <div>
         <div className="flex flex-wrap items-center gap-3">
           <SubjectPill subject={hw.subject} />
-          {lesson && <Link to={`/lessons/${lesson.id}`} className="text-[13px] font-medium text-primary-text hover:underline">Darsni qayta ko‘rish</Link>}
+          {lesson && <Link to={`/lessons/${lesson.id}`} className="text-[13px] font-medium text-primary-text hover:underline">{t('hw.rewatch')}</Link>}
         </div>
-        <h1 className="mt-2 text-2xl font-semibold">{hw.title}</h1>
+        <h1 className="mt-2 text-2xl font-semibold">{tr(hw.title)}</h1>
       </div>
 
       {/* Stepper */}
@@ -164,18 +162,18 @@ export default function HomeworkRunnerPage() {
                 'h-1.5 flex-1 cursor-pointer rounded-full transition-colors',
                 i === step ? 'bg-primary' : progress.answers[x.id] !== undefined ? 'bg-primary/40' : 'bg-ring-track',
               )}
-              aria-label={`${i + 1}-savolga o‘tish`}
+              aria-label={t('hw.goToQuestion', { n: i + 1 })}
               aria-current={i === step ? 'step' : undefined}
             />
           ))}
         </div>
-        <span className="text-[13px] tabular-nums text-muted">{answeredCount}/{total} javob berildi</span>
+        <span className="text-[13px] tabular-nums text-muted">{t('hw.answered', { a: answeredCount, n: total })}</span>
       </div>
 
       <Card className="p-5 sm:p-6">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted">Savol {step + 1} / {total}</p>
+        <p className="text-xs font-medium uppercase tracking-wide text-muted">{t('hw.question', { i: step + 1, n: total })}</p>
         <p className="mt-3 text-[17px] leading-relaxed">{q.prompt}</p>
-        <div className="mt-5 flex flex-col gap-2" role="radiogroup" aria-label="Javob variantlari">
+        <div className="mt-5 flex flex-col gap-2" role="radiogroup" aria-label={t('hw.choices')}>
           {q.choices.map((c, i) => (
             <button
               key={i}
@@ -203,23 +201,23 @@ export default function HomeworkRunnerPage() {
 
       <div className="flex items-center justify-between gap-3">
         <Button variant="secondary" disabled={step === 0} onClick={() => setStep((s) => s - 1)}>
-          <ArrowLeft /> Oldingi
+          <ArrowLeft /> {t('action.prev')}
         </Button>
         <span className="hidden items-center gap-1.5 text-xs text-subtle md:inline-flex">
-          <Keyboard className="size-3.5" /> A–D: javob tanlash · ← →: savollar
+          <Keyboard className="size-3.5" /> {t('hw.keys')}
         </span>
         {step < total - 1 ? (
           <Button disabled={selected === undefined} onClick={() => setStep((s) => s + 1)}>
-            Keyingi <ArrowRight />
+            {t('action.next')} <ArrowRight />
           </Button>
         ) : (
           <Button disabled={!allAnswered} onClick={() => setResult(submit(hw.id))}>
-            <Check /> Topshirish
+            <Check /> {t('hw.submit')}
           </Button>
         )}
       </div>
       {step === total - 1 && !allAnswered && (
-        <p className="text-center text-[13px] text-muted">Topshirish uchun barcha savollarga javob bering.</p>
+        <p className="text-center text-[13px] text-muted">{t('hw.answerAll')}</p>
       )}
     </div>
   )

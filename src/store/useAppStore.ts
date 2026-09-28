@@ -1,10 +1,10 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import type { AppNotification, AttendanceRecord, LeaderboardPeriod, RewardEvent, UserProfile } from '@/types'
+import type { AppNotification, AttendanceRecord, LeaderboardPeriod, RewardEvent, UserProfile, XpSource } from '@/types'
 import { createSeed, type SeedState } from '@/data/seed'
+import { seedNotifications } from '@/data/notifications'
 import { homework } from '@/data/homework'
 import { lessons } from '@/data/lessons'
-import { badges } from '@/data/badges'
 import { evaluateBadges } from '@/lib/badges'
 import { buildAttendance } from '@/lib/attendance'
 import { getLevelInfo } from '@/lib/levels'
@@ -15,6 +15,8 @@ import { uid } from '@/lib/utils'
 type Theme = 'dark' | 'light'
 
 interface PersistedState extends SeedState {
+  /** Session flag: the account stays in this browser after logout, only the session ends */
+  loggedIn: boolean
   theme: Theme
   unlockedBadges: Record<string, string>
   flags: { earlyBird?: boolean; nightOwl?: boolean }
@@ -25,6 +27,10 @@ interface AppState extends PersistedState {
   rewards: RewardEvent[]
 
   completeOnboarding: (patch: Partial<UserProfile>) => void
+  login: () => void
+  logout: () => void
+  /** Wipes the local account so a different person can start from zero */
+  startNewAccount: () => void
   updateUser: (patch: Partial<UserProfile>) => void
   setTheme: (t: Theme) => void
   toggleTheme: () => void
@@ -48,6 +54,7 @@ interface AppState extends PersistedState {
 /** A brand-new account: everything starts from zero */
 const initialPersisted = (): PersistedState => ({
   ...createSeed(),
+  loggedIn: false,
   theme: 'dark',
   flags: {},
   unlockedBadges: {},
@@ -64,19 +71,19 @@ export const useAppStore = create<AppState>()(
   persist(
     (set, get) => {
       /** Adds XP, emits reward + level-up events */
-      const awardXp = (amount: number, reason: string) => {
+      const awardXp = (amount: number, source: XpSource) => {
         const { xp, xpLog } = get()
         const before = getLevelInfo(xp).level
         const after = getLevelInfo(xp + amount).level
-        const rewards: RewardEvent[] = [{ id: uid(), type: 'xp', amount, reason }]
+        const rewards: RewardEvent[] = [{ id: uid(), type: 'xp', amount, source }]
         const notes: AppNotification[] = []
         if (after > before) {
           rewards.push({ id: uid(), type: 'level', level: after })
-          notes.push(notify({ kind: 'level', title: `${after}-darajaga ko‘tarildingiz`, body: `Yangi daraja: ${getLevelInfo(xp + amount).title}`, href: '/profile' }))
+          notes.push(notify({ kind: 'level', params: { level: after, tier: getLevelInfo(xp + amount).tier }, href: '/profile' }))
         }
         set((s) => ({
           xp: s.xp + amount,
-          xpLog: [...xpLog, { id: uid(), amount, reason, at: new Date().toISOString() }],
+          xpLog: [...xpLog, { id: uid(), amount, source, at: new Date().toISOString() }],
           rewards: [...s.rewards, ...rewards],
           notifications: [...notes, ...s.notifications],
         }))
@@ -116,10 +123,7 @@ export const useAppStore = create<AppState>()(
           unlockedBadges: { ...st.unlockedBadges, ...Object.fromEntries(fresh.map((id) => [id, now])) },
           rewards: [...st.rewards, ...fresh.map((badgeId) => ({ id: uid(), type: 'badge' as const, badgeId }))],
           notifications: [
-            ...fresh.map((id) => {
-              const b = badges.find((x) => x.id === id)
-              return notify({ kind: 'badge', title: `Yangi yutuq: ${b?.name ?? id}`, body: b?.description ?? '', href: '/leaderboard' })
-            }),
+            ...fresh.map((badgeId) => notify({ kind: 'badge', params: { badgeId }, href: '/leaderboard' })),
             ...st.notifications,
           ],
         }))
@@ -133,8 +137,11 @@ export const useAppStore = create<AppState>()(
         completeOnboarding: (patch) =>
           set((s) => {
             const fresh = initialPersisted()
-            return { ...fresh, theme: s.theme, onboarded: true, rewards: [], user: { ...fresh.user, ...patch } }
+            return { ...fresh, theme: s.theme, onboarded: true, loggedIn: true, rewards: [], user: { ...fresh.user, ...patch } }
           }),
+        login: () => set({ loggedIn: true }),
+        logout: () => set({ loggedIn: false, rewards: [] }),
+        startNewAccount: () => set((s) => ({ ...initialPersisted(), theme: s.theme, rewards: [] })),
         updateUser: (patch) => set((s) => ({ user: { ...s.user, ...patch } })),
         setTheme: (theme) => set({ theme }),
         toggleTheme: () => set((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
@@ -160,7 +167,7 @@ export const useAppStore = create<AppState>()(
               nightOwl: s.flags.nightOwl || hour >= 22 || hour < 4,
             },
           }))
-          awardXp(lesson.xpReward, `Dars: ${lesson.title}`)
+          awardXp(lesson.xpReward, { type: 'lesson', id: lesson.id })
           markActiveToday()
           checkBadges()
         },
@@ -200,7 +207,7 @@ export const useAppStore = create<AppState>()(
             },
             notifications: s.notifications.filter((n) => n.id !== `deadline-${id}`),
           }))
-          awardXp(xp, `Uy vazifasi: ${hw.title}`)
+          awardXp(xp, { type: 'homework', id: hw.id })
           markActiveToday()
           checkBadges()
           return { score, xp }
@@ -224,26 +231,14 @@ export const useAppStore = create<AppState>()(
             const d = diffDays(now, new Date(p.dueDate))
             const nid = `deadline-${hw.id}`
             if (d >= 0 && d <= 1 && !existing.has(nid)) {
-              add.push(notify({
-                id: nid,
-                kind: 'deadline',
-                title: d === 0 ? 'Muddat bugun tugaydi' : 'Muddat ertaga tugaydi',
-                body: hw.title,
-                href: `/homework?open=${hw.id}`,
-              }))
+              add.push(notify({ id: nid, kind: 'deadline', params: { hwId: hw.id, days: d }, href: `/homework?open=${hw.id}` }))
             }
           }
 
           const { current, activeToday } = computeStreak(s.activeDays, now)
           const riskId = `streak-risk-${toDateKey(now)}`
           if (current > 0 && !activeToday && !existing.has(riskId)) {
-            add.push(notify({
-              id: riskId,
-              kind: 'streak',
-              title: `${current} kunlik seriya uzilishi mumkin`,
-              body: 'Seriyani saqlash uchun bugun bitta dars yoki vazifa bajaring.',
-              href: '/lessons',
-            }))
+            add.push(notify({ id: riskId, kind: 'streak', params: { n: current }, href: '/lessons' }))
           }
           if (add.length) set({ notifications: [...add, ...s.notifications] })
         },
@@ -256,13 +251,26 @@ export const useAppStore = create<AppState>()(
         resetProgress: () => {
           const theme = get().theme
           const fresh = initialPersisted()
-          set({ ...fresh, theme, onboarded: true, rewards: [], user: { ...get().user, joinedAt: fresh.seededAt } })
+          set({ ...fresh, theme, onboarded: true, loggedIn: true, rewards: [], user: { ...get().user, joinedAt: fresh.seededAt } })
         },
       }
     },
     {
       name: 'jamals-store',
-      version: 2,
+      version: 3,
+      // v2 → v3: text-based notifications/XP reasons became language-neutral, and sessions were added
+      migrate: (persisted, version) => {
+        const s = persisted as Record<string, unknown>
+        if (version < 3) {
+          const now = new Date().toISOString()
+          s.notifications = seedNotifications.map((n) => ({ ...n, read: true, createdAt: now }))
+          s.xpLog = ((s.xpLog as { id: string; amount: number; at: string }[]) ?? []).map((e) => ({
+            id: e.id, amount: e.amount, at: e.at, source: { type: 'lesson', id: 'legacy' },
+          }))
+          s.loggedIn = !!s.onboarded
+        }
+        return s as unknown as AppState
+      },
       storage: createJSONStorage(() => localStorage),
       partialize: ({ rewards: _r, ...rest }) =>
         Object.fromEntries(Object.entries(rest).filter(([, v]) => typeof v !== 'function')) as unknown as PersistedState,

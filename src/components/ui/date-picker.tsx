@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import * as Popover from '@radix-ui/react-popover'
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react'
-import { addDays, formatDateLong, fromDateKey, MONTHS_UZ, startOfDay, toDateKey, WEEKDAYS_SHORT_UZ } from '@/lib/date'
+import { addDays, formatDate, formatDateLong, fromDateKey, monthName, startOfDay, toDateKey, weekdaysShort } from '@/lib/date'
+import { useT } from '@/i18n'
 import { cn } from '@/lib/utils'
 
 interface DatePickerProps {
@@ -21,7 +22,8 @@ const sameDay = (a: Date, b: Date) => toDateKey(a) === toDateKey(b)
  * Design-system date picker (replaces the browser's native calendar).
  * Keyboard: ←↑→↓ move by day/week, PageUp/PageDown by month, Home/End week edges, Enter selects, Esc closes.
  */
-export function DatePicker({ value, onChange, min, id, placeholder = 'Sanani tanlang', className }: DatePickerProps) {
+export function DatePicker({ value, onChange, min, id, placeholder, className }: DatePickerProps) {
+  const { t } = useT()
   const selected = value ? fromDateKey(value) : undefined
   const minDate = min ? fromDateKey(min) : undefined
   const [open, setOpen] = useState(false)
@@ -98,7 +100,7 @@ export function DatePicker({ value, onChange, min, id, placeholder = 'Sanani tan
           aria-haspopup="dialog"
         >
           <CalendarDays className="size-4 shrink-0 text-muted" />
-          <span className={cn('flex-1 truncate', !selected && 'text-subtle')}>{selected ? formatDateLong(selected) : placeholder}</span>
+          <span className={cn('flex-1 truncate', !selected && 'text-subtle')}>{selected ? formatDateLong(selected) : (placeholder ?? t('picker.placeholder'))}</span>
         </button>
       </Popover.Trigger>
       <Popover.Portal>
@@ -120,30 +122,30 @@ export function DatePicker({ value, onChange, min, id, placeholder = 'Sanani tan
               onClick={() => shiftMonth(-1)}
               disabled={!canPrev}
               className="grid size-8 cursor-pointer place-items-center rounded-md text-muted transition-colors hover:bg-surface-sunken hover:text-foreground disabled:cursor-default disabled:opacity-30 disabled:hover:bg-transparent"
-              aria-label="Oldingi oy"
+              aria-label={t('picker.prevMonth')}
             >
               <ChevronLeft className="size-4" />
             </button>
             <p className="text-sm font-semibold" aria-live="polite">
-              {MONTHS_UZ[month.getMonth()]} {month.getFullYear()}
+              {monthName(month.getMonth())} {month.getFullYear()}
             </p>
             <button
               type="button"
               onClick={() => shiftMonth(1)}
               className="grid size-8 cursor-pointer place-items-center rounded-md text-muted transition-colors hover:bg-surface-sunken hover:text-foreground"
-              aria-label="Keyingi oy"
+              aria-label={t('picker.nextMonth')}
             >
               <ChevronRight className="size-4" />
             </button>
           </div>
 
           <div className="grid grid-cols-7 text-center text-xs font-medium text-subtle" aria-hidden>
-            {WEEKDAYS_SHORT_UZ.map((d) => (
+            {weekdaysShort().map((d) => (
               <span key={d} className="py-1.5">{d}</span>
             ))}
           </div>
 
-          <div ref={gridRef} role="grid" aria-label="Kalendar" className="grid grid-cols-7 gap-0.5" onKeyDown={onKeyDown}>
+          <div ref={gridRef} role="grid" aria-label={t('picker.calendar')} className="grid grid-cols-7 gap-0.5" onKeyDown={onKeyDown}>
             {days.map((d) => {
               const inMonth = d.getMonth() === month.getMonth()
               const disabled = isDisabled(d)
@@ -178,7 +180,7 @@ export function DatePicker({ value, onChange, min, id, placeholder = 'Sanani tan
           </div>
 
           <div className="mt-2 flex items-center justify-between border-t border-border pt-2 text-xs text-muted">
-            <span>{selected ? `Tanlangan: ${selected.getDate()}-${MONTHS_UZ[selected.getMonth()].toLowerCase()}` : 'Sana tanlanmagan'}</span>
+            <span>{selected ? t('picker.selected', { date: formatDate(selected) }) : t('picker.none')}</span>
             <span className="hidden sm:inline">← → ↑ ↓ · Enter</span>
           </div>
         </Popover.Content>

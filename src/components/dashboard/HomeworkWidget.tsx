@@ -1,3 +1,4 @@
+import { useT } from '@/i18n'
 import { Link } from 'react-router-dom'
 import { ArrowRight, ClipboardList } from 'lucide-react'
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
@@ -9,6 +10,7 @@ import { relativeDue } from '@/lib/date'
 import { cn } from '@/lib/utils'
 
 export function HomeworkWidget() {
+  const { t, tr } = useT()
   const { pending, overdue, dueSoon, inProgress } = usePendingHomework()
   const progress = useAppStore((s) => s.homeworkProgress)
   const now = new Date()
@@ -20,16 +22,16 @@ export function HomeworkWidget() {
     .slice(0, 4)
 
   const stats = [
-    { label: 'Muddati o‘tgan', value: overdue, tone: overdue ? 'text-danger-500' : '' },
-    { label: 'Muddati yaqin', value: dueSoon, tone: dueSoon ? 'text-flare-500' : '' },
-    { label: 'Jarayonda', value: inProgress, tone: '' },
+    { label: t('dash.stat.overdue'), value: overdue, tone: overdue ? 'text-danger-500' : '' },
+    { label: t('dash.stat.dueSoon'), value: dueSoon, tone: dueSoon ? 'text-flare-500' : '' },
+    { label: t('dash.stat.inProgress'), value: inProgress, tone: '' },
   ]
 
   return (
     <Card className="flex flex-col">
       <CardHeader>
-        <CardTitle><ClipboardList /> Uy vazifalari</CardTitle>
-        <span className="text-[13px] text-muted">{pending} ta kutmoqda</span>
+        <CardTitle><ClipboardList /> {t('dash.homework')}</CardTitle>
+        <span className="text-[13px] text-muted">{t('dash.pending', { n: pending })}</span>
       </CardHeader>
       <dl className="grid grid-cols-3 divide-x divide-border rounded-lg border border-border">
         {stats.map((s) => (
@@ -44,17 +46,17 @@ export function HomeworkWidget() {
           <li key={h.id}>
             <Link to={`/homework?open=${h.id}`} className="-mx-2 flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-surface-sunken">
               <span className={cn('size-2 shrink-0 rounded-full', STATUS_META[status].dot)} aria-hidden />
-              <span className="min-w-0 flex-1 truncate text-sm">{h.title}</span>
+              <span className="min-w-0 flex-1 truncate text-sm">{tr(h.title)}</span>
               <span className={cn('shrink-0 text-[13px]', status === 'overdue' ? 'font-medium text-danger-500' : 'text-muted')}>
                 {relativeDue(p.dueDate, now)}
               </span>
             </Link>
           </li>
         ))}
-        {upcoming.length === 0 && <li className="py-4 text-center text-sm text-muted">Barcha vazifalar bajarilgan</li>}
+        {upcoming.length === 0 && <li className="py-4 text-center text-sm text-muted">{t('dash.allDone')}</li>}
       </ul>
       <Link to="/homework" className="mt-auto inline-flex items-center gap-1 pt-3 text-sm font-medium text-primary-text hover:underline">
-        Barcha vazifalar <ArrowRight className="size-4" />
+        {t('dash.allHomework')} <ArrowRight className="size-4" />
       </Link>
     </Card>
   )

@@ -1,18 +1,19 @@
 import { CalendarDays, CirclePlay, ClipboardList, House, Trophy, User, type LucideIcon } from 'lucide-react'
+import type { TKey } from '@/i18n'
 
 export interface NavItem {
   to: string
-  label: string
-  short: string
+  label: TKey
+  short: TKey
   icon: LucideIcon
   mobile: boolean
 }
 
 export const NAV: NavItem[] = [
-  { to: '/', label: 'Bosh sahifa', short: 'Asosiy', icon: House, mobile: true },
-  { to: '/lessons', label: 'Darslar', short: 'Darslar', icon: CirclePlay, mobile: true },
-  { to: '/homework', label: 'Uy vazifalari', short: 'Vazifalar', icon: ClipboardList, mobile: true },
-  { to: '/leaderboard', label: 'Reyting', short: 'Reyting', icon: Trophy, mobile: true },
-  { to: '/attendance', label: 'Davomat', short: 'Davomat', icon: CalendarDays, mobile: true },
-  { to: '/profile', label: 'Profil', short: 'Profil', icon: User, mobile: false },
+  { to: '/', label: 'nav.home', short: 'nav.home.short', icon: House, mobile: true },
+  { to: '/lessons', label: 'nav.lessons', short: 'nav.lessons', icon: CirclePlay, mobile: true },
+  { to: '/homework', label: 'nav.homework', short: 'nav.homework.short', icon: ClipboardList, mobile: true },
+  { to: '/leaderboard', label: 'nav.leaderboard', short: 'nav.leaderboard', icon: Trophy, mobile: true },
+  { to: '/attendance', label: 'nav.attendance', short: 'nav.attendance', icon: CalendarDays, mobile: true },
+  { to: '/profile', label: 'nav.profile', short: 'nav.profile', icon: User, mobile: false },
 ]

@@ -1,3 +1,4 @@
+import { useT } from '@/i18n'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
@@ -16,6 +17,7 @@ import { useAppStore } from '@/store/useAppStore'
 type Filter = 'all' | Subject
 
 export default function LessonsPage() {
+  const { t, tr } = useT()
   const { data: lessons, loading } = useQuery('lessons', api.getLessons)
   const progress = useAppStore((s) => s.lessonProgress)
   const [filter, setFilter] = useState<Filter>('all')
@@ -27,16 +29,16 @@ export default function LessonsPage() {
   return (
     <>
       <PageHeader
-        title="Darslar"
-        subtitle="Har bir darsdan so‘ng unga bog‘liq uy vazifasi ochiladi."
+        title={t('lessons.title')}
+        subtitle={t('lessons.subtitle')}
         action={
           <div className="surface flex items-center gap-3 rounded-lg px-4 py-2.5">
-            <ProgressRing value={total ? completed / total : 0} size={40} stroke={4} label="Kurs progressi">
+            <ProgressRing value={total ? completed / total : 0} size={40} stroke={4} label={t('lessons.course')}>
               <span className="text-xs font-semibold tabular-nums">{total ? Math.round((completed / total) * 100) : 0}%</span>
             </ProgressRing>
             <div className="text-sm">
-              <div className="font-medium">{completed} / {total} dars tugallandi</div>
-              <div className="text-xs text-muted">Kurs progressi</div>
+              <div className="font-medium">{t('lessons.completedOf', { done: completed, total })}</div>
+              <div className="text-xs text-muted">{t('lessons.course')}</div>
             </div>
           </div>
         }
@@ -44,7 +46,7 @@ export default function LessonsPage() {
 
       <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)} className="mb-5">
         <TabsList>
-          <TabsTrigger value="all">Hammasi</TabsTrigger>
+          <TabsTrigger value="all">{t('lessons.all')}</TabsTrigger>
           <TabsTrigger value="math">Math</TabsTrigger>
           <TabsTrigger value="reading">Reading</TabsTrigger>
           <TabsTrigger value="writing">Writing</TabsTrigger>
@@ -70,10 +72,10 @@ export default function LessonsPage() {
                 <Link to={`/lessons/${l.id}`} className="surface group block h-full overflow-hidden rounded-xl transition-colors hover:border-border-strong">
                   <div className="relative aspect-video overflow-hidden bg-surface-sunken">
                     <img src={`https://img.youtube.com/vi/${l.youtubeId}/hqdefault.jpg`} alt="" loading="lazy" className="size-full object-cover" />
-                                                            <span className="absolute bottom-2 right-2 rounded bg-black/75 px-1.5 py-0.5 text-xs font-medium text-white">~{l.durationMin} daq</span>
+                                                            <span className="absolute bottom-2 right-2 rounded bg-black/75 px-1.5 py-0.5 text-xs font-medium text-white">{t('unit.min', { n: l.durationMin })}</span>
                     {p?.completed ? (
                       <span className="absolute left-2 top-2 flex items-center gap-1 rounded bg-black/75 px-1.5 py-0.5 text-xs font-medium text-white">
-                        <CircleCheck className="size-3.5 text-mint-400" /> Tugallangan
+                        <CircleCheck className="size-3.5 text-mint-400" /> {t('lessons.completed')}
                       </span>
                     ) : (
                       <span className="absolute left-1/2 top-1/2 grid size-11 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white/95 text-black opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
@@ -93,7 +95,7 @@ export default function LessonsPage() {
                         <Zap className="size-3.5 text-flare-500" /> {l.xpReward} XP
                       </span>
                     </div>
-                    <h3 className="mt-2.5 font-semibold leading-snug"><span className="text-subtle">{l.order}.</span> {l.title}</h3>
+                    <h3 className="mt-2.5 font-semibold leading-snug"><span className="text-subtle">{l.order}.</span> {tr(l.title)}</h3>
                     <p className="mt-1 text-[13px] text-muted">{l.topic}</p>
                   </div>
                 </Link>

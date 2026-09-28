@@ -1,11 +1,14 @@
+import { useT } from '@/i18n'
 import type { Difficulty } from '@/types'
 import { DIFFICULTY_META } from '@/lib/homework'
 import { cn } from '@/lib/utils'
 
 export function DifficultyBars({ level, showLabel = true }: { level: Difficulty; showLabel?: boolean }) {
+  const { t } = useT()
   const meta = DIFFICULTY_META[level]
+  const label = t(`difficulty.${level}`)
   return (
-    <span className="inline-flex items-center gap-1.5 text-[13px] text-muted" title={`Qiyinlik: ${meta.label}`}>
+    <span className="inline-flex items-center gap-1.5 text-[13px] text-muted" title={t('difficulty.label', { level: label })}>
       <span className="flex items-end gap-0.5">
         {[1, 2, 3].map((i) => (
           <span
@@ -18,7 +21,7 @@ export function DifficultyBars({ level, showLabel = true }: { level: Difficulty;
           />
         ))}
       </span>
-      {showLabel && meta.label}
+      {showLabel && label}
     </span>
   )
 }

@@ -13,10 +13,12 @@ import { useAttendance } from '@/hooks/useAttendance'
 import { lessons } from '@/data/lessons'
 import { isClassDay } from '@/data/attendance'
 import { attendanceRate, attendanceStreak } from '@/lib/streak'
-import { formatDateLong, fromDateKey, MONTHS_UZ, toDateKey, WEEKDAYS_SHORT_UZ } from '@/lib/date'
+import { formatDateLong, fromDateKey, monthName, toDateKey, weekdaysShort } from '@/lib/date'
+import { useT } from '@/i18n'
 import { cn } from '@/lib/utils'
 
 export default function AttendancePage() {
+  const { t } = useT()
   const records = useAttendance()
   const today = new Date()
   const [cursor, setCursor] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1))
@@ -56,29 +58,29 @@ export default function AttendancePage() {
 
   return (
     <>
-      <PageHeader title="Davomat" subtitle="Dars kunlari: dushanba–shanba. Kun ustiga bosib, o‘sha kungi darsni ko‘ring." />
+      <PageHeader title={t('nav.attendance')} subtitle={t('att.subtitle')} />
 
       <div className="grid gap-5 xl:grid-cols-[22rem_1fr]">
         <div className="flex flex-col gap-5">
           <Card className="flex flex-col items-center text-center">
-            <ProgressRing value={rate} size={160} stroke={12} color="var(--mint)" label="Umumiy davomat">
+            <ProgressRing value={rate} size={160} stroke={12} color="var(--mint)" label={t('att.overallAria')}>
               <div>
                 <div className="text-4xl font-semibold tabular-nums">
                   {records.length ? <>{Math.round(rate * 100)}<span className="text-xl">%</span></> : '—'}
                 </div>
-                <div className="text-xs text-muted">umumiy davomat</div>
+                <div className="text-xs text-muted">{t('att.overall')}</div>
               </div>
             </ProgressRing>
             {records.length ? (
               <>
                 <p className="mt-4 text-sm text-muted">
-                  {records.filter((r) => r.status === 'present').length} / {records.length} dars kunida qatnashgansiz
+                  {t('att.summary', { a: records.filter((r) => r.status === 'present').length, n: records.length })}
                 </p>
-                {rate < 0.9 && <p className="mt-1 text-[13px] text-muted">Kamida 10 dars kunida 90% ga yetsangiz, “90% davomat” yutug‘i beriladi</p>}
+                {rate < 0.9 && <p className="mt-1 text-[13px] text-muted">{t('att.badgeHint')}</p>}
               </>
             ) : (
               <p className="mt-4 text-sm text-muted">
-                Hali davomat yo‘q. Bugun bitta dars yoki vazifa bajarsangiz, kun “qatnashgan” deb belgilanadi.
+                {t('att.empty')}
               </p>
             )}
           </Card>
@@ -89,15 +91,15 @@ export default function AttendancePage() {
                 <Flame className="size-5 text-ember-500" />
               </div>
               <div>
-                <div className="text-xl font-semibold tabular-nums">{streak} <span className="text-sm font-normal text-muted">kun</span></div>
-                <div className="text-[13px] text-muted">Ketma-ket qatnashish</div>
+                <div className="text-xl font-semibold tabular-nums">{streak} <span className="text-sm font-normal text-muted">{t('unit.daysWord')}</span></div>
+                <div className="text-[13px] text-muted">{t('att.streak')}</div>
               </div>
             </Card>
             <Card className="p-4 sm:p-5">
-              <div className="text-[13px] text-muted">{MONTHS_UZ[cursor.getMonth()]} oyi</div>
+              <div className="text-[13px] text-muted">{t('att.month', { month: monthName(cursor.getMonth()) })}</div>
               <div className="mt-2 flex gap-4">
-                <div><div className="text-xl font-semibold tabular-nums">{monthPresent}</div><div className="text-xs text-muted">qatnashildi</div></div>
-                <div><div className="text-xl font-semibold tabular-nums">{monthAbsent}</div><div className="text-xs text-muted">qoldirildi</div></div>
+                <div><div className="text-xl font-semibold tabular-nums">{monthPresent}</div><div className="text-xs text-muted">{t('att.present')}</div></div>
+                <div><div className="text-xl font-semibold tabular-nums">{monthAbsent}</div><div className="text-xs text-muted">{t('att.absent')}</div></div>
               </div>
             </Card>
           </div>
@@ -106,16 +108,16 @@ export default function AttendancePage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">
-              {MONTHS_UZ[cursor.getMonth()]} {cursor.getFullYear()}
+              {monthName(cursor.getMonth())} {cursor.getFullYear()}
             </CardTitle>
             <div className="flex gap-1">
-              <Button variant="ghost" size="icon" disabled={!canPrev} onClick={() => shift(-1)} aria-label="Oldingi oy"><ChevronLeft /></Button>
-              <Button variant="ghost" size="icon" disabled={!canNext} onClick={() => shift(1)} aria-label="Keyingi oy"><ChevronRight /></Button>
+              <Button variant="ghost" size="icon" disabled={!canPrev} onClick={() => shift(-1)} aria-label={t('picker.prevMonth')}><ChevronLeft /></Button>
+              <Button variant="ghost" size="icon" disabled={!canNext} onClick={() => shift(1)} aria-label={t('picker.nextMonth')}><ChevronRight /></Button>
             </div>
           </CardHeader>
 
           <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
-            {WEEKDAYS_SHORT_UZ.map((d) => (
+            {weekdaysShort().map((d) => (
               <div key={d} className="pb-1 text-center text-xs font-medium text-muted">{d}</div>
             ))}
           </div>
@@ -147,7 +149,7 @@ export default function AttendancePage() {
                       future && 'text-subtle',
                       isToday && 'font-semibold ring-2 ring-inset ring-primary',
                     )}
-                    aria-label={`${formatDateLong(d)}: ${rec ? (rec.status === 'present' ? 'qatnashgan' : 'qoldirilgan') : classDay ? 'dars yo‘q / hali belgilanmagan' : 'dam olish kuni'}`}
+                    aria-label={`${formatDateLong(d)}: ${rec ? (rec.status === 'present' ? t('att.aria.present') : t('att.aria.absent')) : classDay ? t('att.aria.none') : t('att.aria.off')}`}
                   >
                     {d.getDate()}
                     {rec && <span className={cn('size-1.5 rounded-full', rec.status === 'present' ? 'bg-mint-500' : 'bg-danger-500')} aria-hidden />}
@@ -158,10 +160,10 @@ export default function AttendancePage() {
           </AnimatePresence>
 
           <div className="mt-5 flex flex-wrap gap-4 text-[13px] text-muted">
-            <Legend className="bg-mint-500" label="Qatnashgan" />
-            <Legend className="bg-danger-500" label="O‘tkazib yuborilgan" />
-            <Legend className="bg-surface-sunken ring-1 ring-border" label="Dars yo‘q / dam olish" />
-            <Legend className="ring-2 ring-inset ring-primary" label="Bugun" />
+            <Legend className="bg-mint-500" label={t('att.legend.present')} />
+            <Legend className="bg-danger-500" label={t('att.legend.absent')} />
+            <Legend className="bg-surface-sunken ring-1 ring-border" label={t('att.legend.none')} />
+            <Legend className="ring-2 ring-inset ring-primary" label={t('att.legend.today')} />
           </div>
         </Card>
       </div>
@@ -180,6 +182,7 @@ function Legend({ className, label }: { className: string; label: string }) {
 }
 
 function DayDialog({ date, record, onClose }: { date: string | null; record?: AttendanceRecord; onClose: () => void }) {
+  const { t, tr } = useT()
   if (!date) return null
   const d = fromDateKey(date)
   const lesson = record ? lessons.find((l) => l.id === record.lessonId) : undefined
@@ -202,14 +205,14 @@ function DayDialog({ date, record, onClose }: { date: string | null; record?: At
             <DialogTitle className="text-lg">{formatDateLong(d)}</DialogTitle>
             <DialogDescription>
               {record?.status === 'present'
-                ? 'Darsda qatnashgansiz'
+                ? t('att.day.present')
                 : record
-                  ? 'Bu kungi dars o‘tkazib yuborilgan'
+                  ? t('att.day.absent')
                   : !isClassDay(d)
-                    ? 'Dam olish kuni — dars rejalashtirilmagan'
+                    ? t('att.day.off')
                     : future
-                      ? 'Kelgusi dars kuni'
-                      : 'Bugun hali dars tugallanmagan'}
+                      ? t('att.day.future')
+                      : t('att.day.todayPending')}
             </DialogDescription>
           </div>
         </div>
@@ -219,11 +222,11 @@ function DayDialog({ date, record, onClose }: { date: string | null; record?: At
             <img src={`https://img.youtube.com/vi/${lesson.youtubeId}/mqdefault.jpg`} alt="" className="aspect-video w-full object-cover" />
             <div className="p-4">
               <SubjectPill subject={lesson.subject} />
-              <h3 className="mt-2 font-semibold">{lesson.title}</h3>
-              <p className="mt-1 line-clamp-2 text-xs text-muted">{lesson.description}</p>
+              <h3 className="mt-2 font-semibold">{tr(lesson.title)}</h3>
+              <p className="mt-1 line-clamp-2 text-xs text-muted">{tr(lesson.description)}</p>
               <Button asChild size="sm" className="mt-3" variant={record?.status === 'absent' ? 'default' : 'secondary'}>
                 <Link to={`/lessons/${lesson.id}`} onClick={onClose}>
-                  <CirclePlay /> {record?.status === 'absent' ? 'Qoldirilgan darsni ko‘rish' : 'Darsni qayta ko‘rish'}
+                  <CirclePlay /> {record?.status === 'absent' ? t('att.watchMissed') : t('att.rewatch')}
                 </Link>
               </Button>
             </div>
@@ -231,7 +234,7 @@ function DayDialog({ date, record, onClose }: { date: string | null; record?: At
         )}
         {!record && isToday && isClassDay(d) && (
           <Button asChild className="mt-5 w-full">
-            <Link to="/lessons" onClick={onClose}><CirclePlay /> Bugungi darsni boshlash</Link>
+            <Link to="/lessons" onClick={onClose}><CirclePlay /> {t('att.startToday')}</Link>
           </Button>
         )}
       </DialogContent>

@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useT } from '@/i18n'
 
 export const Dialog = DialogPrimitive.Root
 export const DialogTrigger = DialogPrimitive.Trigger
@@ -10,7 +11,9 @@ export const DialogClose = DialogPrimitive.Close
 export const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+>(({ className, children, ...props }, ref) => {
+  const { t } = useT()
+  return (
   <DialogPrimitive.Portal>
     <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-[fadeIn_.15s_ease]" />
     <DialogPrimitive.Content
@@ -24,11 +27,12 @@ export const DialogContent = React.forwardRef<
       {children}
       <DialogPrimitive.Close className="absolute right-4 top-4 cursor-pointer rounded-md p-1.5 text-muted transition hover:bg-surface-sunken hover:text-foreground">
         <X className="size-4" />
-        <span className="sr-only">Yopish</span>
+        <span className="sr-only">{t('action.close')}</span>
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>
   </DialogPrimitive.Portal>
-))
+  )
+})
 DialogContent.displayName = 'DialogContent'
 
 export const DialogTitle = React.forwardRef<

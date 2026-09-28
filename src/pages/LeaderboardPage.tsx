@@ -1,3 +1,4 @@
+import { useT } from '@/i18n'
 import { useState } from 'react'
 import { Award, Flame, Medal, Trophy } from 'lucide-react'
 import type { LeaderboardPeriod, RankedEntry } from '@/types'
@@ -16,9 +17,10 @@ import { longestStreak } from '@/lib/streak'
 import { cn, formatNumber } from '@/lib/utils'
 
 const TOP_N = 10
-const PERIOD_LABEL: Record<LeaderboardPeriod, string> = { weekly: 'Haftalik', monthly: 'Oylik', all: 'Umumiy' }
+const PERIODS: LeaderboardPeriod[] = ['weekly', 'monthly', 'all']
 
 export default function LeaderboardPage() {
+  const { t } = useT()
   const [period, setPeriod] = useState<LeaderboardPeriod>('weekly')
   const { rows, me, loading } = useRanking(period)
 
@@ -27,13 +29,13 @@ export default function LeaderboardPage() {
   return (
     <>
       <PageHeader
-        title="Reyting"
-        subtitle="XP bo‘yicha o‘rinlar. O‘z natijangizni o‘tgan davr bilan ham solishtiring."
+        title={t('nav.leaderboard')}
+        subtitle={t('lb.subtitle')}
         action={
           <Tabs value={period} onValueChange={(v) => setPeriod(v as LeaderboardPeriod)}>
             <TabsList>
-              {(Object.keys(PERIOD_LABEL) as LeaderboardPeriod[]).map((p) => (
-                <TabsTrigger key={p} value={p}>{PERIOD_LABEL[p]}</TabsTrigger>
+              {PERIODS.map((p) => (
+                <TabsTrigger key={p} value={p}>{t(`lb.${p}`)}</TabsTrigger>
               ))}
             </TabsList>
           </Tabs>
@@ -50,9 +52,9 @@ export default function LeaderboardPage() {
             <Card className="overflow-hidden p-0">
               <div className="grid grid-cols-[2.5rem_1fr_auto_auto] items-center gap-3 border-b border-border px-4 py-2.5 text-xs font-medium uppercase tracking-wide text-muted sm:grid-cols-[2.5rem_1fr_4rem_3.5rem_5.5rem]">
                 <span>#</span>
-                <span>O‘quvchi</span>
-                <span className="hidden text-right sm:block">Seriya</span>
-                <span className="text-right">O‘zg.</span>
+                <span>{t('lb.student')}</span>
+                <span className="hidden text-right sm:block">{t('lb.streak')}</span>
+                <span className="text-right">{t('lb.change')}</span>
                 <span className="text-right">XP</span>
               </div>
               <ol>
@@ -63,7 +65,7 @@ export default function LeaderboardPage() {
               {meOutsideTop && me && (
                 <div className="sticky bottom-16 z-10 lg:bottom-0">
                   {me.rank > TOP_N + 1 && (
-                    <div className="border-t border-border bg-surface-sunken px-4 py-1 text-center text-xs text-subtle">{TOP_N + 1}–{me.rank - 1}-o‘rinlar</div>
+                    <div className="border-t border-border bg-surface-sunken px-4 py-1 text-center text-xs text-subtle">{t('lb.gap', { from: TOP_N + 1, to: me.rank - 1 })}</div>
                   )}
                   <Row entry={me} pinned />
                 </div>
@@ -82,6 +84,7 @@ export default function LeaderboardPage() {
 }
 
 function Row({ entry, pinned }: { entry: RankedEntry; pinned?: boolean }) {
+  const { t, tr } = useT()
   const medal = entry.rank <= 3 ? ['text-flare-500', 'text-muted', 'text-ember-500'][entry.rank - 1] : ''
   return (
     <li
@@ -101,12 +104,12 @@ function Row({ entry, pinned }: { entry: RankedEntry; pinned?: boolean }) {
         <div className="min-w-0">
           <div className="truncate text-sm font-medium">
             {entry.name}
-            {entry.isMe && <span className="ml-1.5 rounded bg-primary px-1.5 py-px text-[11px] font-semibold text-white">Siz</span>}
+            {entry.isMe && <span className="ml-1.5 rounded bg-primary px-1.5 py-px text-[11px] font-semibold text-white">{t('you')}</span>}
           </div>
-          <div className="truncate text-xs text-muted">{entry.isMe ? 'Sizning natijangiz' : entry.school}</div>
+          <div className="truncate text-xs text-muted">{entry.isMe || !entry.school ? t('lb.yourResult') : tr(entry.school)}</div>
         </div>
       </div>
-      <span className="hidden items-center justify-end gap-1 text-[13px] tabular-nums text-muted sm:flex" title="Kunlik seriya">
+      <span className="hidden items-center justify-end gap-1 text-[13px] tabular-nums text-muted sm:flex" title={t('dash.streak')}>
         <Flame className={cn('size-3.5', entry.streak ? 'text-ember-500' : 'text-subtle')} /> {entry.streak}
       </span>
       <RankChange change={entry.change} className="justify-end" />
@@ -116,6 +119,7 @@ function Row({ entry, pinned }: { entry: RankedEntry; pinned?: boolean }) {
 }
 
 function PersonalRecords({ currentRank }: { currentRank?: number }) {
+  const { t } = useT()
   const bestRank = useAppStore((s) => s.bestRank)
   const best = [bestRank, currentRank].filter((x): x is number => typeof x === 'number').reduce((m, x) => Math.min(m, x), Infinity)
   const bestStreakStored = useAppStore((s) => s.bestStreak)
@@ -126,20 +130,20 @@ function PersonalRecords({ currentRank }: { currentRank?: number }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle><Medal /> Shaxsiy rekordlar</CardTitle>
+        <CardTitle><Medal /> {t('lb.records')}</CardTitle>
       </CardHeader>
       <div className="mb-3 flex items-center gap-3 rounded-lg border border-border p-3">
         <span className="grid size-10 place-items-center rounded-lg bg-ember-500/10 text-ember-500">
           <Flame className="size-5" />
         </span>
         <div>
-          <div className="text-xl font-semibold tabular-nums">{current} <span className="text-sm font-normal text-muted">kunlik seriya</span></div>
-          <div className="text-[13px] text-muted">{activeToday ? 'Bugungi mashg‘ulot hisobga olindi' : current ? 'Seriyani saqlash uchun bugun shug‘ullaning' : 'Bugun yangi seriya boshlang'}</div>
+          <div className="text-xl font-semibold tabular-nums">{current} <span className="text-sm font-normal text-muted">{t('lb.streakDays')}</span></div>
+          <div className="text-[13px] text-muted">{activeToday ? t('lb.todayCounted') : current ? t('lb.keepStreak') : t('lb.startStreak')}</div>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <Stat icon={<Trophy className="size-4 text-muted" />} label="Eng yuqori o‘rin" value={Number.isFinite(best) ? `${best}-o‘rin` : '—'} sub={currentRank ? `Hozir: ${currentRank}-o‘rin` : undefined} />
-        <Stat icon={<Flame className="size-4 text-ember-500" />} label="Eng uzun seriya" value={Math.max(bestStreak, current) ? `${Math.max(bestStreak, current)} kun` : '—'} sub={current >= bestStreak && current > 0 ? 'Joriy seriya — rekord' : undefined} />
+        <Stat icon={<Trophy className="size-4 text-muted" />} label={t('lb.bestRank')} value={Number.isFinite(best) ? t('dash.place', { n: best }) : '—'} sub={currentRank ? t('lb.nowRank', { n: currentRank }) : undefined} />
+        <Stat icon={<Flame className="size-4 text-ember-500" />} label={t('lb.longest')} value={Math.max(bestStreak, current) ? t('unit.days', { n: Math.max(bestStreak, current) }) : '—'} sub={current >= bestStreak && current > 0 ? t('lb.currentRecord') : undefined} />
       </div>
     </Card>
   )
@@ -156,6 +160,7 @@ function Stat({ icon, label, value, sub }: { icon: React.ReactNode; label: strin
 }
 
 function BadgeGallery() {
+  const { t } = useT()
   const { data: badges, loading } = useQuery('badges', api.getBadges)
   const unlocked = useAppStore((s) => s.unlockedBadges)
   const count = badges?.filter((b) => unlocked[b.id]).length ?? 0
@@ -163,7 +168,7 @@ function BadgeGallery() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle><Award /> Yutuqlar</CardTitle>
+        <CardTitle><Award /> {t('lb.badges')}</CardTitle>
         <span className="text-xs font-semibold text-muted">{count} / {badges?.length ?? 0}</span>
       </CardHeader>
       {loading || !badges ? (

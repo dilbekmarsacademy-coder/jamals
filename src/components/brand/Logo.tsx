@@ -1,3 +1,4 @@
+import { useT } from '@/i18n'
 import { cn } from '@/lib/utils'
 
 /** Jamals brand mark (raster logo, served from /public in 64/192 px for crisp 1x/3x rendering) */
@@ -16,13 +17,14 @@ export function LogoMark({ className }: { className?: string }) {
 }
 
 export function Logo({ className, compact = false }: { className?: string; compact?: boolean }) {
+  const { t } = useT()
   return (
     <div className={cn('flex items-center gap-2.5', className)}>
       <LogoMark />
       {!compact && (
         <div className="leading-tight">
           <div className="text-[15px] font-semibold tracking-tight">Jamals</div>
-          <div className="text-xs text-muted">SAT tayyorlov</div>
+          <div className="text-xs text-muted">{t('app.tagline')}</div>
         </div>
       )}
     </div>

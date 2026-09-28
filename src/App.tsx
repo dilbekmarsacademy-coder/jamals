@@ -4,6 +4,7 @@ import { MotionConfig } from 'framer-motion'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { useAppStore } from '@/store/useAppStore'
+import { useT } from '@/i18n'
 import DashboardPage from '@/pages/DashboardPage'
 import LessonsPage from '@/pages/LessonsPage'
 import LessonPage from '@/pages/LessonPage'
@@ -24,9 +25,24 @@ function ThemeSync() {
   return null
 }
 
-function RequireOnboarding({ children }: { children: ReactNode }) {
-  const onboarded = useAppStore((s) => s.onboarded)
-  return onboarded ? children : <Navigate to="/welcome" replace />
+function TitleSync() {
+  const { t, lang } = useT()
+  useEffect(() => {
+    document.title = t('app.title')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang])
+  return null
+}
+
+function RequireAuth({ children }: { children: ReactNode }) {
+  // Signed in = finished onboarding and didn't log out
+  const allowed = useAppStore((s) => s.onboarded && s.loggedIn)
+  return allowed ? children : <Navigate to="/welcome" replace />
+}
+
+function GuestOnly({ children }: { children: ReactNode }) {
+  const signedIn = useAppStore((s) => s.onboarded && s.loggedIn)
+  return signedIn ? <Navigate to="/" replace /> : children
 }
 
 export default function App() {
@@ -34,14 +50,15 @@ export default function App() {
     <MotionConfig reducedMotion="user">
       <TooltipProvider delayDuration={150}>
         <ThemeSync />
+        <TitleSync />
         <BrowserRouter>
           <Routes>
-            <Route path="/welcome" element={<OnboardingPage />} />
+            <Route path="/welcome" element={<GuestOnly><OnboardingPage /></GuestOnly>} />
             <Route
               element={
-                <RequireOnboarding>
+                <RequireAuth>
                   <AppLayout />
-                </RequireOnboarding>
+                </RequireAuth>
               }
             >
               <Route index element={<DashboardPage />} />
