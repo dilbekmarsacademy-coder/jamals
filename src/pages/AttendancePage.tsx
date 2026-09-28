@@ -9,7 +9,7 @@ import { SubjectPill } from '@/components/common/SubjectPill'
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
-import { useAppStore } from '@/store/useAppStore'
+import { useAttendance } from '@/hooks/useAttendance'
 import { lessons } from '@/data/lessons'
 import { isClassDay } from '@/data/attendance'
 import { attendanceRate, attendanceStreak } from '@/lib/streak'
@@ -17,7 +17,7 @@ import { formatDateLong, fromDateKey, MONTHS_UZ, toDateKey, WEEKDAYS_SHORT_UZ } 
 import { cn } from '@/lib/utils'
 
 export default function AttendancePage() {
-  const records = useAppStore((s) => s.attendance)
+  const records = useAttendance()
   const today = new Date()
   const [cursor, setCursor] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1))
   const [selected, setSelected] = useState<string | null>(null)
@@ -63,14 +63,24 @@ export default function AttendancePage() {
           <Card className="flex flex-col items-center text-center">
             <ProgressRing value={rate} size={160} stroke={12} color="var(--mint)" label="Umumiy davomat">
               <div>
-                <div className="text-4xl font-semibold tabular-nums">{Math.round(rate * 100)}<span className="text-xl">%</span></div>
+                <div className="text-4xl font-semibold tabular-nums">
+                  {records.length ? <>{Math.round(rate * 100)}<span className="text-xl">%</span></> : '—'}
+                </div>
                 <div className="text-xs text-muted">umumiy davomat</div>
               </div>
             </ProgressRing>
-            <p className="mt-4 text-sm text-muted">
-              {records.filter((r) => r.status === 'present').length} / {records.length} dars kunida qatnashgansiz
-            </p>
-            {rate < 0.9 && <p className="mt-1 text-[13px] text-muted">90% davomatga yetganda “90% davomat” yutug‘i beriladi</p>}
+            {records.length ? (
+              <>
+                <p className="mt-4 text-sm text-muted">
+                  {records.filter((r) => r.status === 'present').length} / {records.length} dars kunida qatnashgansiz
+                </p>
+                {rate < 0.9 && <p className="mt-1 text-[13px] text-muted">Kamida 10 dars kunida 90% ga yetsangiz, “90% davomat” yutug‘i beriladi</p>}
+              </>
+            ) : (
+              <p className="mt-4 text-sm text-muted">
+                Hali davomat yo‘q. Bugun bitta dars yoki vazifa bajarsangiz, kun “qatnashgan” deb belgilanadi.
+              </p>
+            )}
           </Card>
 
           <div className="grid grid-cols-2 gap-5 xl:grid-cols-1">

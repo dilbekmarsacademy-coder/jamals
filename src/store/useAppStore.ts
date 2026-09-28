@@ -1,12 +1,12 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import type { AppNotification, AttendanceRecord, RewardEvent, UserProfile } from '@/types'
+import type { AppNotification, AttendanceRecord, LeaderboardPeriod, RewardEvent, UserProfile } from '@/types'
 import { createSeed, type SeedState } from '@/data/seed'
 import { homework } from '@/data/homework'
 import { lessons } from '@/data/lessons'
 import { badges } from '@/data/badges'
-import { isClassDay } from '@/data/attendance'
 import { evaluateBadges } from '@/lib/badges'
+import { buildAttendance } from '@/lib/attendance'
 import { getLevelInfo } from '@/lib/levels'
 import { computeStreak } from '@/lib/streak'
 import { diffDays, toDateKey } from '@/lib/date'
@@ -41,20 +41,17 @@ interface AppState extends PersistedState {
   refreshNotifications: () => void
   dismissReward: (id: string) => void
   recordRank: (rank: number) => void
+  setRankSnapshot: (period: LeaderboardPeriod, rank: number) => void
   resetProgress: () => void
 }
 
-const initialPersisted = (): PersistedState => {
-  const seed = createSeed()
-  const streak = computeStreak(seed.activeDays).current
-  const unlocked = evaluateBadges({ ...seed, streak, flags: {} })
-  return {
-    ...seed,
-    theme: 'dark',
-    flags: {},
-    unlockedBadges: Object.fromEntries(unlocked.map((id) => [id, seed.seededAt])),
-  }
-}
+/** A brand-new account: everything starts from zero */
+const initialPersisted = (): PersistedState => ({
+  ...createSeed(),
+  theme: 'dark',
+  flags: {},
+  unlockedBadges: {},
+})
 
 const notify = (n: Omit<AppNotification, 'id' | 'createdAt' | 'read'> & { id?: string }): AppNotification => ({
   id: n.id ?? uid(),
@@ -94,7 +91,7 @@ export const useAppStore = create<AppState>()(
         const streak = computeStreak(nextDays).current
 
         let nextAttendance: AttendanceRecord[] = attendance
-        if (isClassDay(new Date()) && !attendance.some((r) => r.date === today)) {
+        if (!attendance.some((r) => r.date === today)) {
           const next = lessons.find((l) => !get().lessonProgress[l.id]?.completed) ?? lessons[0]
           nextAttendance = [...attendance, { date: today, status: 'present', lessonId: next.id }]
         }
@@ -111,7 +108,7 @@ export const useAppStore = create<AppState>()(
       const checkBadges = () => {
         const s = get()
         const streak = computeStreak(s.activeDays).current
-        const earned = evaluateBadges({ ...s, streak })
+        const earned = evaluateBadges({ ...s, streak, attendance: buildAttendance(s.attendance, s.user.joinedAt) })
         const fresh = earned.filter((id) => !s.unlockedBadges[id])
         if (!fresh.length) return
         const now = new Date().toISOString()
@@ -132,7 +129,12 @@ export const useAppStore = create<AppState>()(
         ...initialPersisted(),
         rewards: [],
 
-        completeOnboarding: (patch) => set((s) => ({ onboarded: true, user: { ...s.user, ...patch } })),
+        // Onboarding starts a fresh account "now" (deadlines, attendance and join date count from this moment)
+        completeOnboarding: (patch) =>
+          set((s) => {
+            const fresh = initialPersisted()
+            return { ...fresh, theme: s.theme, onboarded: true, rewards: [], user: { ...fresh.user, ...patch } }
+          }),
         updateUser: (patch) => set((s) => ({ user: { ...s.user, ...patch } })),
         setTheme: (theme) => set({ theme }),
         toggleTheme: () => set((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
@@ -247,17 +249,20 @@ export const useAppStore = create<AppState>()(
         },
 
         dismissReward: (id) => set((s) => ({ rewards: s.rewards.filter((r) => r.id !== id) })),
-        recordRank: (rank) => set((s) => (rank < s.bestRank ? { bestRank: rank } : s)),
+        recordRank: (rank) => set((s) => (s.bestRank === null || rank < s.bestRank ? { bestRank: rank } : s)),
+        setRankSnapshot: (period, rank) =>
+          set((s) => ({ rankSnapshots: { ...s.rankSnapshots, [period]: { rank, at: new Date().toISOString() } } })),
 
         resetProgress: () => {
           const theme = get().theme
-          set({ ...initialPersisted(), theme, onboarded: true, user: get().user, rewards: [] })
+          const fresh = initialPersisted()
+          set({ ...fresh, theme, onboarded: true, rewards: [], user: { ...get().user, joinedAt: fresh.seededAt } })
         },
       }
     },
     {
-      name: 'kvazar-store',
-      version: 1,
+      name: 'jamals-store',
+      version: 2,
       storage: createJSONStorage(() => localStorage),
       partialize: ({ rewards: _r, ...rest }) =>
         Object.fromEntries(Object.entries(rest).filter(([, v]) => typeof v !== 'function')) as unknown as PersistedState,

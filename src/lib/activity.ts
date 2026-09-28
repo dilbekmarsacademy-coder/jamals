@@ -36,3 +36,10 @@ export function getWeeklyActivity(log: XpEvent[], now = new Date()) {
 
 export const xpSince = (log: XpEvent[], iso: string) =>
   log.filter((e) => e.at > iso).reduce((s, e) => s + e.amount, 0)
+
+/** XP earned within the last `days` days (including today) */
+export const xpInLastDays = (log: XpEvent[], days: number, now = new Date()) => {
+  const from = addDays(now, -(days - 1))
+  from.setHours(0, 0, 0, 0)
+  return log.filter((e) => new Date(e.at) >= from).reduce((s, e) => s + e.amount, 0)
+}

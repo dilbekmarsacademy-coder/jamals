@@ -117,6 +117,7 @@ function Row({ entry, pinned }: { entry: RankedEntry; pinned?: boolean }) {
 
 function PersonalRecords({ currentRank }: { currentRank?: number }) {
   const bestRank = useAppStore((s) => s.bestRank)
+  const best = [bestRank, currentRank].filter((x): x is number => typeof x === 'number').reduce((m, x) => Math.min(m, x), Infinity)
   const bestStreakStored = useAppStore((s) => s.bestStreak)
   const activeDays = useAppStore((s) => s.activeDays)
   const { current, activeToday } = useStreak()
@@ -137,8 +138,8 @@ function PersonalRecords({ currentRank }: { currentRank?: number }) {
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <Stat icon={<Trophy className="size-4 text-muted" />} label="Eng yuqori o‘rin" value={`${Math.min(bestRank, currentRank ?? bestRank)}-o‘rin`} sub={currentRank ? `Hozir: ${currentRank}-o‘rin` : undefined} />
-        <Stat icon={<Flame className="size-4 text-ember-500" />} label="Eng uzun seriya" value={`${Math.max(bestStreak, current)} kun`} sub={current >= bestStreak && current > 0 ? 'Joriy seriya — rekord' : undefined} />
+        <Stat icon={<Trophy className="size-4 text-muted" />} label="Eng yuqori o‘rin" value={Number.isFinite(best) ? `${best}-o‘rin` : '—'} sub={currentRank ? `Hozir: ${currentRank}-o‘rin` : undefined} />
+        <Stat icon={<Flame className="size-4 text-ember-500" />} label="Eng uzun seriya" value={Math.max(bestStreak, current) ? `${Math.max(bestStreak, current)} kun` : '—'} sub={current >= bestStreak && current > 0 ? 'Joriy seriya — rekord' : undefined} />
       </div>
     </Card>
   )

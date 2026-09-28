@@ -1,6 +1,6 @@
-# Kvazar — gamifikatsiyalashgan SAT tayyorlov platformasi
+# Jamals — gamifikatsiyalashgan SAT tayyorlov platformasi
 
-**Kvazar** — SAT'ga tayyorlanish uchun frontend-only (backend'siz) platforma. Auditoriya — katta yoshdagi o'quvchilar, shuning uchun interfeys sokin va "ish quroli" uslubida.
+**Jamals** — SAT'ga tayyorlanish uchun frontend-only (backend'siz) platforma. Auditoriya — katta yoshdagi o'quvchilar, shuning uchun interfeys sokin va "ish quroli" uslubida.
 
 **Dizayn tizimi** (`src/index.css`): Inter shrifti, neytral sirtlar, bitta asosiy rang (indigo `#5B4BF0` / dark: `#7465FF`), aksent rang (korall) faqat seriya belgisi uchun. Gradient faqat logotipda ishlatiladi. Minimal shrift o'lchami 12px, hamma joyda bir xil klaviatura fokusi, `prefers-reduced-motion` hurmat qilinadi.
 
@@ -13,8 +13,9 @@ npm run build      # tiplarni tekshiradi va dist/ ga yig'adi
 npm run preview    # build natijasini ko'rish
 ```
 
-Node.js 20+ kerak. Birinchi ochilishda onboarding (`/welcome`) chiqadi: “Demo sifatida davom etish” → ism → maqsad → yo'nalish.
-Progressni boshlang'ich holatga qaytarish uchun: **Profil → Progressni qayta boshlash**.
+Node.js 20+ kerak. Birinchi ochilishda onboarding (`/welcome`) chiqadi: “Demo rejimda davom etish” → ism → maqsad va imtihon sanasi → yo'nalish.
+**Yangi hisob 0 dan boshlanadi:** XP, seriya, darslar, vazifalar, yutuqlar va davomat bo'sh; uy vazifalari muddatlari ro'yxatdan o'tgan kundan boshlab rejalashtiriladi. Davomat faqat haqiqiy faollikdan hisoblanadi (o'tgan dars kunida faollik bo'lmasa — “qoldirilgan”).
+Progressni 0 ga qaytarish: **Profil → Progressni tiklash**.
 
 ## Stack
 
@@ -32,7 +33,7 @@ React 19 · Vite · TypeScript · Tailwind CSS v4 · shadcn/ui (Radix) · Framer
 | `/leaderboard` | Podium + ro'yxat, ↑↓ o'zgarish, “siz” qatori sticky, haftalik/oylik/umumiy, shaxsiy rekordlar, nishonlar devori |
 | `/attendance` | Oylik kalendar, kun popup'i, davomat % ring, davomat streak |
 | `/profile` | Statistika, daraja tarixi, sozlamalar (ism, maqsad, sana, mavzu) |
-| `/welcome` | Mock login + onboarding (UI-only) |
+| `/welcome` | Mock login + onboarding (UI-only), sana uchun o'z dizayndagi kalendar |
 
 ## Gamifikatsiya qoidalari
 

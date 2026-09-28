@@ -28,7 +28,8 @@ export const badgeRules: Record<string, (c: BadgeContext) => boolean> = {
   'xp-5000': (c) => c.xp >= 5000,
   'math-master': (c) => done(c.lessonProgress, lessons.filter((l) => l.subject === 'math').map((l) => l.id)),
   wordsmith: (c) => done(c.lessonProgress, lessons.filter((l) => l.subject !== 'math').map((l) => l.id)),
-  'attendance-90': (c) => attendanceRate(c.attendance) >= 0.9,
+  // Needs a meaningful sample, otherwise one day of study = 100%
+  'attendance-90': (c) => c.attendance.length >= 10 && attendanceRate(c.attendance) >= 0.9,
   'early-bird': (c) => !!c.flags.earlyBird,
   'night-owl': (c) => !!c.flags.nightOwl,
 }

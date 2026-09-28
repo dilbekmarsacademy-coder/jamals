@@ -3,7 +3,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * Kvazar design tokens
+ * Jamals design tokens
  *  Calm neutral surfaces, one primary (indigo), one accent (coral) used sparingly.
  *  Gradient is reserved for the brand mark only.
  */

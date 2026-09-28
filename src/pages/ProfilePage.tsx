@@ -7,13 +7,15 @@ import { ProgressRing } from '@/components/common/ProgressRing'
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { DatePicker } from '@/components/ui/date-picker'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { useAppStore, useLevel } from '@/store/useAppStore'
+import { useAttendance } from '@/hooks/useAttendance'
 import { lessons } from '@/data/lessons'
 import { badges } from '@/data/badges'
 import { getLevelInfo, xpAtLevel } from '@/lib/levels'
 import { attendanceRate } from '@/lib/streak'
-import { formatDate } from '@/lib/date'
+import { formatDate, toDateKey } from '@/lib/date'
 import { SUBJECT_META } from '@/lib/homework'
 import { cn, formatNumber } from '@/lib/utils'
 
@@ -21,7 +23,7 @@ export default function ProfilePage() {
   const user = useAppStore((s) => s.user)
   const lessonProgress = useAppStore((s) => s.lessonProgress)
   const hwProgress = useAppStore((s) => s.homeworkProgress)
-  const attendance = useAppStore((s) => s.attendance)
+  const attendance = useAttendance()
   const unlocked = useAppStore((s) => s.unlockedBadges)
   const level = useLevel()
 
@@ -32,8 +34,8 @@ export default function ProfilePage() {
   const stats = [
     { icon: BookOpen, label: 'Tugallangan darslar', value: `${lessonsDone}/${lessons.length}` },
     { icon: ClipboardCheck, label: 'Bajarilgan vazifalar', value: String(doneHw.length) },
-    { icon: Target, label: 'O‘rtacha natija', value: `${Math.round(avgScore * 100)}%` },
-    { icon: CalendarCheck, label: 'Davomat', value: `${Math.round(attendanceRate(attendance) * 100)}%` },
+    { icon: Target, label: 'O‘rtacha natija', value: doneHw.length ? `${Math.round(avgScore * 100)}%` : '—' },
+    { icon: CalendarCheck, label: 'Davomat', value: attendance.length ? `${Math.round(attendanceRate(attendance) * 100)}%` : '—' },
     { icon: Award, label: 'Yutuqlar', value: `${Object.keys(unlocked).length}/${badges.length}` },
     { icon: Zap, label: 'Jami XP', value: formatNumber(level.totalXp) },
   ]
@@ -156,7 +158,7 @@ function SettingsCard() {
           <input type="range" min={1000} max={1600} step={10} value={target} onChange={(e) => setTarget(Number(e.target.value))} className="w-full accent-[var(--primary)]" aria-label="Maqsadli ball" />
         </Field>
         <Field label="SAT imtihon sanasi">
-          <Input type="date" value={testDate} onChange={(e) => setTestDate(e.target.value)} />
+          <DatePicker value={testDate} onChange={setTestDate} min={toDateKey(new Date())} />
         </Field>
         <Field label="Asosiy yo‘nalish">
           <div className="grid grid-cols-3 gap-2">

@@ -40,8 +40,3 @@ export const leaderboard: LeaderboardEntry[] = [
   e('u17', 'Ilhom Sattorov', 'Navoiy, 12-maktab', 210, 1510, 4020, [17, 15, 16], 0),
   e('u18', 'Muxlisa Abdullayeva', 'Urganch, 9-maktab', 160, 1200, 3480, [18, 18, 18], 0),
 ]
-
-/** Where the current user stood last period (for ↑↓) */
-export const myPrevRank = { weekly: 17, monthly: 15, all: 16 }
-/** Mock weekly/monthly share of the user's XP (the "all" value is live) */
-export const mySeedPeriodXp = { weekly: 380, monthly: 1840 }

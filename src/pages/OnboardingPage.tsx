@@ -5,6 +5,8 @@ import type { Subject } from '@/types'
 import { Logo } from '@/components/brand/Logo'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { DatePicker } from '@/components/ui/date-picker'
+import { toDateKey } from '@/lib/date'
 import { useAppStore } from '@/store/useAppStore'
 import { cn } from '@/lib/utils'
 
@@ -135,7 +137,7 @@ export default function OnboardingPage() {
                 <Range id="target" label="Maqsadli ball" value={target} min={1000} max={1600} onChange={setTarget} />
                 <Range id="current" label="Hozirgi taxminiy ball" value={current} min={400} max={1600} onChange={setCurrent} />
                 <Field id="date" label="Imtihon sanasi">
-                  <Input id="date" type="date" value={testDate} onChange={(e) => setTestDate(e.target.value)} />
+                  <DatePicker id="date" value={testDate} onChange={setTestDate} min={toDateKey(new Date())} />
                 </Field>
               </div>
             </div>

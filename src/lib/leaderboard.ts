@@ -1,29 +1,30 @@
 import type { LeaderboardEntry, LeaderboardPeriod, RankedEntry, UserProfile } from '@/types'
-import { myPrevRank, mySeedPeriodXp } from '@/data/leaderboard'
 
 interface Me {
   user: UserProfile
+  /** XP earned in this period (all-time = total XP) */
   xp: number
-  /** XP earned after seeding — added to weekly/monthly seed values */
-  earnedSinceSeed: number
   streak: number
+  /** Rank at the last snapshot, if any — drives the ↑↓ indicator */
+  prevRank?: number
 }
 
 export function rankLeaderboard(entries: LeaderboardEntry[], me: Me, period: LeaderboardPeriod): RankedEntry[] {
-  const myXp = period === 'all' ? me.xp : mySeedPeriodXp[period] + me.earnedSinceSeed
   const rows = [
     ...entries.map((e) => ({
       id: e.id, name: e.name, avatarSeed: e.avatarSeed, school: e.school,
-      xp: e.xp[period], prev: e.prevRank[period], streak: e.streak, isMe: false,
+      xp: e.xp[period], prev: e.prevRank[period] as number | undefined, streak: e.streak, isMe: false,
     })),
     {
-      id: me.user.id, name: me.user.name, avatarSeed: me.user.avatarSeed, school: 'Siz',
-      xp: myXp, prev: myPrevRank[period], streak: me.streak, isMe: true,
+      id: me.user.id, name: me.user.name || 'Siz', avatarSeed: me.user.avatarSeed, school: 'Siz',
+      xp: me.xp, prev: me.prevRank, streak: me.streak, isMe: true,
     },
-  ].sort((a, b) => b.xp - a.xp)
+  ]
+    // Ties: other students keep their place ahead of a newcomer with equal XP
+    .sort((a, b) => b.xp - a.xp || Number(a.isMe) - Number(b.isMe))
 
   return rows.map((r, i) => ({
     id: r.id, name: r.name, avatarSeed: r.avatarSeed, school: r.school,
-    xp: r.xp, rank: i + 1, change: r.prev - (i + 1), streak: r.streak, isMe: r.isMe,
+    xp: r.xp, rank: i + 1, change: r.prev ? r.prev - (i + 1) : 0, streak: r.streak, isMe: r.isMe,
   }))
 }

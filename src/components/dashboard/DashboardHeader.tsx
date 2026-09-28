@@ -12,12 +12,14 @@ const GREETING: Record<DayPart, string> = {
 
 export function DashboardHeader({ weekDelta }: { weekDelta: number | null }) {
   const user = useAppStore((s) => s.user)
+  const xp = useAppStore((s) => s.xp)
   const { overdue, dueSoon } = usePendingHomework()
   const firstName = user.name.split(' ')[0]
 
   const summary: string[] = []
   if (overdue) summary.push(`${overdue} ta vazifa muddati o‘tgan`)
   if (dueSoon) summary.push(`${dueSoon} ta vazifa muddati yaqin`)
+  if (xp === 0) summary.push('birinchi darsdan boshlang — har bir tugallangan dars va vazifa progressingizga qo‘shiladi')
   if (weekDelta !== null) summary.push(weekDelta >= 0 ? `bu hafta o‘tgan haftadan ${weekDelta}% ko‘p XP` : `bu hafta o‘tgan haftadan ${-weekDelta}% kam XP`)
 
   return (
