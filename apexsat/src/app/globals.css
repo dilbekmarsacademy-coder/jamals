@@ -1,0 +1,243 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * ApexSAT design tokens. Dark is the default theme; `.light` on <html> swaps
+ * the surface/text tokens. Accent hues stay recognisable in both themes but
+ * are darkened in light mode to keep text contrast ≥ 4.5:1.
+ */
+:root,
+.dark {
+  color-scheme: dark;
+  --bg: #090d16;
+  --bg-elev: #0b0f19;
+  --surface: #131b2e;
+  --surface-2: #1e293b;
+  --surface-3: #263349;
+  --border: rgb(51 65 85 / 0.7);
+  --border-strong: #334155;
+  --fg: #e2e8f0;
+  --fg-strong: #f8fafc;
+  --muted: #94a3b8;
+  --subtle: #64748b;
+
+  --cyan: #06b6d4;
+  --cyan-bright: #00f2fe;
+  --cyan-fg: #22d3ee;
+  --violet: #8b5cf6;
+  --violet-deep: #7928ca;
+  --violet-fg: #a78bfa;
+  --gold: #f59e0b;
+  --gold-fg: #fbbf24;
+  --orange: #f97316;
+  --orange-fg: #fb923c;
+  --emerald: #10b981;
+  --emerald-fg: #34d399;
+  --crimson: #ef4444;
+  --crimson-fg: #f87171;
+
+  --on-accent: #04121a;
+  --ring: #22d3ee;
+  --glass: rgb(19 27 46 / 0.72);
+  --grid-line: rgb(148 163 184 / 0.06);
+  --heat-0: #161f33;
+}
+
+.light {
+  color-scheme: light;
+  --bg: #f4f6fb;
+  --bg-elev: #eef2f8;
+  --surface: #ffffff;
+  --surface-2: #f1f5f9;
+  --surface-3: #e2e8f0;
+  --border: rgb(203 213 225 / 0.9);
+  --border-strong: #cbd5e1;
+  --fg: #1e293b;
+  --fg-strong: #0b1220;
+  --muted: #526077;
+  --subtle: #7b879a;
+
+  --cyan: #0891b2;
+  --cyan-bright: #06b6d4;
+  --cyan-fg: #0e7490;
+  --violet: #7c3aed;
+  --violet-deep: #6d28d9;
+  --violet-fg: #6d28d9;
+  --gold: #d97706;
+  --gold-fg: #b45309;
+  --orange: #ea580c;
+  --orange-fg: #c2410c;
+  --emerald: #059669;
+  --emerald-fg: #047857;
+  --crimson: #dc2626;
+  --crimson-fg: #b91c1c;
+
+  --on-accent: #ffffff;
+  --ring: #0891b2;
+  --glass: rgb(255 255 255 / 0.8);
+  --grid-line: rgb(15 23 42 / 0.05);
+  --heat-0: #e5eaf2;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-elev: var(--bg-elev);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-fg: var(--fg);
+  --color-fg-strong: var(--fg-strong);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-cyan: var(--cyan);
+  --color-cyan-bright: var(--cyan-bright);
+  --color-cyan-fg: var(--cyan-fg);
+  --color-violet: var(--violet);
+  --color-violet-deep: var(--violet-deep);
+  --color-violet-fg: var(--violet-fg);
+  --color-gold: var(--gold);
+  --color-gold-fg: var(--gold-fg);
+  --color-orange: var(--orange);
+  --color-orange-fg: var(--orange-fg);
+  --color-emerald: var(--emerald);
+  --color-emerald-fg: var(--emerald-fg);
+  --color-crimson: var(--crimson);
+  --color-crimson-fg: var(--crimson-fg);
+  --color-on-accent: var(--on-accent);
+  --color-ring: var(--ring);
+  --color-glass: var(--glass);
+  --color-heat-0: var(--heat-0);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-manrope), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-serif: "Georgia", "Times New Roman", serif;
+
+  --animate-pulse-ring: pulse-ring 1.8s ease-in-out infinite;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+}
+
+@keyframes pulse-ring {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(239 68 68 / 0.45);
+    border-color: rgb(239 68 68 / 0.9);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgb(239 68 68 / 0);
+    border-color: rgb(239 68 68 / 0.45);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    color: var(--fg-strong);
+    letter-spacing: -0.02em;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  ::selection {
+    background: rgb(6 182 212 / 0.35);
+  }
+  button {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
+
+@layer components {
+  /* 1px glass card used across the app */
+  .glass {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+  .bg-cta {
+    background: linear-gradient(120deg, var(--cyan-bright) 0%, var(--cyan) 100%);
+  }
+  .text-gradient {
+    background: linear-gradient(100deg, var(--cyan-bright), var(--violet) 70%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .bg-brand-gradient {
+    background: linear-gradient(120deg, var(--cyan) 0%, var(--violet) 100%);
+  }
+  .bg-grid {
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+  .skeleton {
+    background: linear-gradient(90deg, var(--surface-2) 0%, var(--surface-3) 50%, var(--surface-2) 100%);
+    background-size: 200% 100%;
+    animation: var(--animate-shimmer);
+  }
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+  /* SAT passage annotations */
+  .mark-hl {
+    background: rgb(250 204 21 / 0.38);
+    border-radius: 2px;
+    cursor: pointer;
+  }
+  .mark-strike {
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+    text-decoration-color: var(--crimson);
+    opacity: 0.55;
+    cursor: pointer;
+  }
+  .mark-hl:hover,
+  .mark-strike:hover {
+    outline: 1px dashed var(--muted);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
